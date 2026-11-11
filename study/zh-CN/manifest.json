@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "purpose": "read-only Chinese study mirror; not executable skills",
+  "files": [
+    {
+      "source": ".pi/prompts/cl.md",
+      "translation": "study/zh-CN/.pi/prompts/cl.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "e86103ed3476ac5760526496f9d4a5a63ae6e3a8a9597db103cfd023ddbf9684",
+      "title": "变更日志审计",
+      "translatedUnits": 34
+    },
+    {
+      "source": ".pi/prompts/deslop.md",
+      "translation": "study/zh-CN/.pi/prompts/deslop.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "a52acc375c4b8c949ddb0469f802c5a352a98fe26d47fb12fbcf5c555aeb4551",
+      "title": "简化已完成工作",
+      "translatedUnits": 46
+    },
+    {
+      "source": ".pi/prompts/is.md",
+      "translation": "study/zh-CN/.pi/prompts/is.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "9bc500efde0bcd1285e1103492077d732c24242719d230a109b13c7bcad7b7d4",
+      "title": "GitHub Issue 分析",
+      "translatedUnits": 16
+    },
+    {
+      "source": ".pi/prompts/pr.md",
+      "translation": "study/zh-CN/.pi/prompts/pr.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "1ba8e6cba91354e27bc4976d237c291691e9a064cee2132cef7656e3ceb46e20",
+      "title": "PR 评审",
+      "translatedUnits": 24
+    },
+    {
+      "source": ".pi/prompts/sa.md",
+      "translation": "study/zh-CN/.pi/prompts/sa.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "7b590798a5526e6620c6052cb688afd1d7ff2c2ca9426f8a28b5110a94ddbd7a",
+      "title": "安全公告草稿与更新",
+      "translatedUnits": 67
+    },
+    {
+      "source": ".pi/prompts/wr.md",
+      "translation": "study/zh-CN/.pi/prompts/wr.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "86c6bd7b244b6d4d1792804ce170a2d0b67f735dcf79d539c88163c0c73dba1b",
+      "title": "任务收尾、提交与推送",
+      "translatedUnits": 27
+    },
+    {
+      "source": ".pi/skills/add-llm-provider.md",
+      "translation": "study/zh-CN/.pi/skills/add-llm-provider.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "684ffea93aee90c2f13a21c5c696a4a303264d412ea8f9f789b6c9065718132d",
+      "title": "添加新的模型提供方（packages/ai）",
+      "translatedUnits": 36
+    },
+    {
+      "source": ".pi/skills/interactive-testing.md",
+      "translation": "study/zh-CN/.pi/skills/interactive-testing.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "65264173c8d5352b9ad643dd524238da0537572aeed9c1d754017ca8907c9673",
+      "title": "使用 tmux 测试 pi 交互模式",
+      "translatedUnits": 3
+    },
+    {
+      "source": ".pi/skills/release.md",
+      "translation": "study/zh-CN/.pi/skills/release.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "22ffbeda40edee2bfb6a8d93ba31472dd9b8a028f9fc32b6e64d468fb0aa3fb6",
+      "title": "发布 pi",
+      "translatedUnits": 12
+    },
+    {
+      "source": "packages/coding-agent/examples/extensions/subagent/agents/planner.md",
+      "translation": "study/zh-CN/packages/coding-agent/examples/extensions/subagent/agents/planner.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "452f21f65957753cec3b0772004209c108071be168e627fffd7191234c0ce64e",
+      "title": "规划代理",
+      "translatedUnits": 20
+    },
+    {
+      "source": "packages/coding-agent/examples/extensions/subagent/agents/reviewer.md",
+      "translation": "study/zh-CN/packages/coding-agent/examples/extensions/subagent/agents/reviewer.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "b5c3f13b67207e8e32de631f8cd52a373d9b956028e2f8c1fd8b737b5f239265",
+      "title": "评审代理",
+      "translatedUnits": 19
+    },
+    {
+      "source": "packages/coding-agent/examples/extensions/subagent/agents/scout.md",
+      "translation": "study/zh-CN/packages/coding-agent/examples/extensions/subagent/agents/scout.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "3b84e8e01c6e05c8dfbff1c845c0c6371f4f16350735d4d1dbd02bfa98b1d4e6",
+      "title": "代码侦察代理",
+      "translatedUnits": 22
+    },
+    {
+      "source": "packages/coding-agent/examples/extensions/subagent/agents/worker.md",
+      "translation": "study/zh-CN/packages/coding-agent/examples/extensions/subagent/agents/worker.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "ca2b2298fcbd8bfafcfe61977dc8075001a64b9c4d8c289c3b5eaa896efe6238",
+      "title": "执行代理",
+      "translatedUnits": 12
+    },
+    {
+      "source": "packages/coding-agent/examples/extensions/subagent/prompts/implement-and-review.md",
+      "translation": "study/zh-CN/packages/coding-agent/examples/extensions/subagent/prompts/implement-and-review.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "019ba4bf42d596ea03fc4564be5b2cc55a06227c95db19a4d5a5bb96697a75f9",
+      "title": "实现、评审与修正",
+      "translatedUnits": 5
+    },
+    {
+      "source": "packages/coding-agent/examples/extensions/subagent/prompts/implement.md",
+      "translation": "study/zh-CN/packages/coding-agent/examples/extensions/subagent/prompts/implement.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "65462de33c97ac1372cfed270dad9af164605b05028c069dd4c013ff9792675b",
+      "title": "侦察、规划与实施",
+      "translatedUnits": 5
+    },
+    {
+      "source": "packages/coding-agent/examples/extensions/subagent/prompts/scout-and-plan.md",
+      "translation": "study/zh-CN/packages/coding-agent/examples/extensions/subagent/prompts/scout-and-plan.md",
+      "sourceCommit": "eff3c1c1612f2f4f4d4e187a15d4060c12a27fc9",
+      "sourceSha256": "9506399391e0d2c71826c45f26cc332175dd964465f99a8bb880e109f8ed89f4",
+      "title": "侦察与规划",
+      "translatedUnits": 4
+    }
+  ]
+}
