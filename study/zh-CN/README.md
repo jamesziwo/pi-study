@@ -26,3 +26,10 @@
 | `packages/coding-agent/examples/extensions/subagent/prompts/implement-and-review.md` | [实现、评审与修正](packages/coding-agent/examples/extensions/subagent/prompts/implement-and-review.md) | [原文](../../packages/coding-agent/examples/extensions/subagent/prompts/implement-and-review.md) |
 | `packages/coding-agent/examples/extensions/subagent/prompts/implement.md` | [侦察、规划与实施](packages/coding-agent/examples/extensions/subagent/prompts/implement.md) | [原文](../../packages/coding-agent/examples/extensions/subagent/prompts/implement.md) |
 | `packages/coding-agent/examples/extensions/subagent/prompts/scout-and-plan.md` | [侦察与规划](packages/coding-agent/examples/extensions/subagent/prompts/scout-and-plan.md) | [原文](../../packages/coding-agent/examples/extensions/subagent/prompts/scout-and-plan.md) |
+
+## 学习计划配套说明
+
+| 原始相对路径 | 中文阅读版 | 英文原文 |
+|---|---|---|
+| `packages/agent/README.md` | [@earendil-works/pi-agent-core](packages/agent/README.md) | [原文](../../packages/agent/README.md) |
+| `packages/coding-agent/examples/extensions/subagent/README.md` | [Subagent 示例](packages/coding-agent/examples/extensions/subagent/README.md) | [原文](../../packages/coding-agent/examples/extensions/subagent/README.md) |

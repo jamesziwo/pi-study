@@ -129,6 +129,22 @@
       "sourceSha256": "9506399391e0d2c71826c45f26cc332175dd964465f99a8bb880e109f8ed89f4",
       "title": "侦察与规划",
       "translatedUnits": 4
+    },
+    {
+      "source": "packages/agent/README.md",
+      "translation": "study/zh-CN/packages/agent/README.md",
+      "sourceCommit": "b2688a3cecd01abb46d1ba9edb506f8658e5f98c",
+      "sourceSha256": "04e44bb21db2894ed77b13c0fb63a5e9f619df633abd1b8f9fe4a04472040c3b",
+      "title": "@earendil-works/pi-agent-core",
+      "translatedUnits": 85
+    },
+    {
+      "source": "packages/coding-agent/examples/extensions/subagent/README.md",
+      "translation": "study/zh-CN/packages/coding-agent/examples/extensions/subagent/README.md",
+      "sourceCommit": "b2688a3cecd01abb46d1ba9edb506f8658e5f98c",
+      "sourceSha256": "6a888330bf974657751e09f5d375a9039872d59d6606fc217c5105c7eca51b1a",
+      "title": "Subagent 示例",
+      "translatedUnits": 77
     }
   ]
 }
