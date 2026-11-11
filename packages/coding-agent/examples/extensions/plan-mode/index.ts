@@ -1,3 +1,5 @@
+// 中文：计划模式扩展：用于安全代码分析的只读探索模式，启用时禁用内置写工具。通过 /plan 或 Ctrl+Alt+P 切换；Bash 限于允许列表中的只读命令；从
+// Plan: 部分提取编号步骤；执行时用 [DONE:n] 标记完成步骤，并显示进度组件。
 /**
  * Plan Mode Extension
  *
@@ -18,6 +20,7 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import { Key } from "@earendil-works/pi-tui";
 import { extractTodoItems, isSafeCommand, markCompletedSteps, type TodoItem } from "./utils.ts";
 
+// 中文：工具。
 // Tools
 const PLAN_MODE_TOOLS = ["read", "bash", "grep", "find", "ls", "questionnaire"];
 const NORMAL_MODE_TOOLS = ["read", "bash", "edit", "write"];
@@ -31,11 +34,13 @@ interface PlanModeState {
 	toolsBeforePlanMode?: string[];
 }
 
+// 中文：助手消息的类型守卫。
 // Type guard for assistant messages
 function isAssistantMessage(m: AgentMessage): m is AssistantMessage {
 	return m.role === "assistant" && Array.isArray(m.content);
 }
 
+// 中文：提取助手消息的文本内容。
 // Extract text content from an assistant message
 function getTextContent(message: AssistantMessage): string {
 	return message.content
@@ -57,6 +62,7 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 	});
 
 	function updateStatus(ctx: ExtensionContext): void {
+		// 中文：页脚状态。
 		// Footer status
 		if (executionMode && todoItems.length > 0) {
 			const completed = todoItems.filter((t) => t.completed).length;
@@ -67,6 +73,7 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 			ctx.ui.setStatus("plan-mode", undefined);
 		}
 
+		// 中文：显示待办列表的组件。
 		// Widget showing todo list
 		if (executionMode && todoItems.length > 0) {
 			const lines = todoItems.map((item) => {
@@ -160,6 +167,7 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 		handler: async (ctx) => togglePlanMode(ctx),
 	});
 
+	// 中文：计划模式下阻止破坏性 bash 命令。
 	// Block destructive bash commands in plan mode
 	pi.on("tool_call", async (event) => {
 		if (!planModeEnabled || event.toolName !== "bash") return;
@@ -173,6 +181,7 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 		}
 	});
 
+	// 中文：非计划模式时过滤过期的计划模式上下文。
 	// Filter out stale plan mode context when not in plan mode
 	pi.on("context", async (event) => {
 		if (planModeEnabled) return;
@@ -197,6 +206,7 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 		};
 	});
 
+	// 中文：智能体启动前注入计划／执行上下文。
 	// Inject plan/execution context before agent starts
 	pi.on("before_agent_start", async () => {
 		if (planModeEnabled) {
@@ -246,6 +256,7 @@ After completing a step, include a [DONE:n] tag in your response.`,
 		}
 	});
 
+	// 中文：每轮结束后跟踪进度。
 	// Track progress after each turn
 	pi.on("turn_end", async (event, ctx) => {
 		if (!executionMode || todoItems.length === 0) return;
@@ -258,8 +269,10 @@ After completing a step, include a [DONE:n] tag in your response.`,
 		persistState();
 	});
 
+	// 中文：处理计划完成及计划模式界面。
 	// Handle plan completion and plan mode UI
 	pi.on("agent_end", async (event, ctx) => {
+		// 中文：检查执行是否完成。
 		// Check if execution is complete
 		if (executionMode && todoItems.length > 0) {
 			if (todoItems.every((t) => t.completed)) {
@@ -271,6 +284,7 @@ After completing a step, include a [DONE:n] tag in your response.`,
 				executionMode = false;
 				todoItems = [];
 				updateStatus(ctx);
+				// 中文：保存已清空状态，避免恢复会话时还原旧执行模式。
 				persistState(); // Save cleared state so resume doesn't restore old execution mode
 			}
 			return;
@@ -278,6 +292,7 @@ After completing a step, include a [DONE:n] tag in your response.`,
 
 		if (!planModeEnabled || !ctx.hasUI) return;
 
+		// 中文：从最后一条助手消息提取待办项。
 		// Extract todos from last assistant message
 		const lastAssistant = [...event.messages].reverse().find(isAssistantMessage);
 		if (lastAssistant) {
@@ -290,6 +305,7 @@ After completing a step, include a [DONE:n] tag in your response.`,
 		if (todoItems.length === 0) return;
 		persistState();
 
+		// 中文：显示计划步骤并询问下一步动作。
 		// Show plan steps and prompt for next action
 		const todoListText = todoItems.map((t, i) => `${i + 1}. ☐ ${t.text}`).join("\n");
 		const planTodoListMessage = {
@@ -336,6 +352,7 @@ After completing a step, include a [DONE:n] tag in your response.`;
 		}
 	});
 
+	// 中文：会话启动或恢复时还原状态。
 	// Restore state on session start/resume
 	pi.on("session_start", async (_event, ctx) => {
 		if (pi.getFlag("plan") === true) {
@@ -344,6 +361,7 @@ After completing a step, include a [DONE:n] tag in your response.`;
 
 		const entries = ctx.sessionManager.getEntries();
 
+		// 中文：还原已持久化状态。
 		// Restore persisted state
 		const planModeEntry = entries
 			.filter((e: { type: string; customType?: string }) => e.type === "custom" && e.customType === "plan-mode")
@@ -356,10 +374,12 @@ After completing a step, include a [DONE:n] tag in your response.`;
 			toolsBeforePlanMode = planModeEntry.data.toolsBeforePlanMode ?? toolsBeforePlanMode;
 		}
 
+		// 中文：恢复时重新扫描消息以重建完成状态；只扫描最后一个 plan-mode-execute 之后的消息，避免拾取旧计划的 [DONE:n] 标记。
 		// On resume: re-scan messages to rebuild completion state
 		// Only scan messages AFTER the last "plan-mode-execute" to avoid picking up [DONE:n] from previous plans
 		const isResume = planModeEntry !== undefined;
 		if (isResume && executionMode && todoItems.length > 0) {
+			// 中文：查找最后一个 plan-mode-execute 条目索引，它标记当前执行的起点。
 			// Find the index of the last plan-mode-execute entry (marks when current execution started)
 			let executeIndex = -1;
 			for (let i = entries.length - 1; i >= 0; i--) {
@@ -370,6 +390,7 @@ After completing a step, include a [DONE:n] tag in your response.`;
 				}
 			}
 
+			// 中文：只扫描执行标记之后的消息。
 			// Only scan messages after the execute marker
 			const messages: AssistantMessage[] = [];
 			for (let i = executeIndex + 1; i < entries.length; i++) {

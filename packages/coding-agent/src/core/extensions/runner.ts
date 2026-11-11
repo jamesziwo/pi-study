@@ -1,3 +1,4 @@
+// 中文：扩展运行器：执行扩展并管理其生命周期。
 /**
  * Extension runner - executes extensions and manages their lifecycle.
  */
@@ -67,6 +68,7 @@ import type {
 	UserBashEventResult,
 } from "./types.ts";
 
+// 中文：扩展快捷键与 keybindings.json 中的规范快捷键 ID 竞争；这里只保留编辑器全局快捷键，不保留选择器专用快捷键。
 // Extension shortcuts compete with canonical keybinding ids from keybindings.json.
 // Only editor-global shortcuts are reserved here. Picker-specific bindings are not.
 const RESERVED_KEYBINDINGS_FOR_EXTENSION_CONFLICTS = [
@@ -100,6 +102,7 @@ const buildBuiltinKeybindings = (resolvedKeybindings: KeybindingsConfig): BuiltI
 		const restrictOverride = (RESERVED_KEYBINDINGS_FOR_EXTENSION_CONFLICTS as readonly string[]).includes(keybinding);
 		for (const key of keyList) {
 			const normalizedKey = key.toLowerCase() as KeyId;
+			// 中文：多个动作绑定同一个按键时，保留动作优先，从而不论迭代顺序如何，扩展都不能占用保留快捷键。
 			// If multiple actions bind the same key, the reserved action wins so extensions
 			// remain blocked by reserved shortcuts regardless of iteration order.
 			const existing = builtinKeybindings[normalizedKey];
@@ -113,12 +116,14 @@ const buildBuiltinKeybindings = (resolvedKeybindings: KeybindingsConfig): BuiltI
 	return builtinKeybindings;
 };
 
+// 中文：所有 before_agent_start 处理器的合并结果。
 /** Combined result from all before_agent_start handlers */
 interface BeforeAgentStartCombinedResult {
 	messages?: NonNullable<BeforeAgentStartEventResult["message"]>[];
 	systemPrompt?: string;
 }
 
+// 中文：通用 emit() 处理的事件；有专用 emitXxx() 方法的事件不在此列，以加强类型安全。
 /**
  * Events handled by the generic emit() method.
  * Events with dedicated emitXxx() methods are excluded for stronger type safety.
@@ -186,6 +191,7 @@ export type ReloadHandler = () => Promise<void>;
 
 export type ShutdownHandler = () => void;
 
+// 中文：向扩展发出 session_shutdown 事件的辅助函数。已发出时返回 true，没有处理器时返回 false。
 /**
  * Helper function to emit session_shutdown event to extensions.
  * Returns true if the event was emitted, false if there were no handlers.
@@ -208,6 +214,7 @@ export async function emitProjectTrustEvent(
 ): Promise<{ result?: ProjectTrustEventResult; errors: ExtensionError[] }> {
 	const errors: ExtensionError[] = [];
 	for (const ext of extensionsResult.extensions) {
+		// 中文：一个扩展可以为同一事件注册多个处理器。第一个返回 yes/no 的 project_trust 处理器决定结果；undecided 则继续向后传递。
 		// A single extension may register multiple handlers for the same event.
 		// The first project_trust handler that returns yes/no wins; undecided falls through.
 		const handlers = ext.handlers.get("project_trust");
@@ -323,6 +330,7 @@ export class ExtensionRunner {
 			unregisterProvider?: (name: string) => void;
 		},
 	): void {
+		// 中文：将动作复制到所有扩展 API 引用的共享运行时。
 		// Copy actions into the shared runtime (all extension APIs reference this)
 		this.runtime.sendMessage = actions.sendMessage;
 		this.runtime.sendUserMessage = actions.sendUserMessage;
@@ -339,6 +347,7 @@ export class ExtensionRunner {
 		this.runtime.getThinkingLevel = actions.getThinkingLevel;
 		this.runtime.setThinkingLevel = actions.setThinkingLevel;
 
+		// 中文：必需的上下文动作。
 		// Context actions (required)
 		this.getModel = contextActions.getModel;
 		this.getScopedModels = contextActions.getScopedModels;
@@ -353,6 +362,7 @@ export class ExtensionRunner {
 		this.getSystemPromptFn = contextActions.getSystemPrompt;
 		this.getSystemPromptOptionsFn = contextActions.getSystemPromptOptions ?? (() => ({ cwd: this.cwd }));
 
+		// 中文：处理扩展加载期间排队的模型提供方注册。
 		// Flush provider registrations queued during extension loading
 		for (const { name, config, extensionPath } of this.runtime.pendingProviderRegistrations) {
 			try {
@@ -389,6 +399,7 @@ export class ExtensionRunner {
 		}
 		this.runtime.pendingNativeProviderRegistrations = [];
 
+		// 中文：从此处开始，模型提供方注册或注销立即生效，无需 /reload。
 		// From this point on, provider registration/unregistration takes effect immediately
 		// without requiring a /reload.
 		this.runtime.registerProvider = (name, config) => {
@@ -497,6 +508,7 @@ export class ExtensionRunner {
 		return this.extensions.map((e) => e.path);
 	}
 
+	// 中文：取得所有扩展注册的工具，同名工具以首次注册为准。
 	/** Get all registered tools from all extensions (first registration per name wins). */
 	getAllRegisteredTools(): RegisteredTool[] {
 		const toolsByName = new Map<string, RegisteredTool>();
@@ -510,6 +522,7 @@ export class ExtensionRunner {
 		return Array.from(toolsByName.values());
 	}
 
+	// 中文：按名称获取工具定义，未找到时返回 undefined。
 	/** Get a tool definition by name. Returns undefined if not found. */
 	getToolDefinition(toolName: string): RegisteredTool["definition"] | undefined {
 		for (const ext of this.extensions) {
@@ -703,6 +716,7 @@ export class ExtensionRunner {
 		return this.resolveRegisteredCommands().find((command) => command.invocationName === name);
 	}
 
+	// 中文：由扩展工具和事件处理器请求平稳关闭。实际关闭行为由运行模式通过 bindExtensions() 提供。
 	/**
 	 * Request a graceful shutdown. Called by extension tools and event handlers.
 	 * The actual shutdown behavior is provided by the mode via bindExtensions().
@@ -716,6 +730,7 @@ export class ExtensionRunner {
 		return this.runtime.getActiveTools();
 	}
 
+	// 中文：创建供事件处理和工具执行使用的 ExtensionContext。上下文值在调用时解析，因此能反映 bindCore/bindUI 带来的变更。
 	/**
 	 * Create an ExtensionContext for use in event handlers and tool execution.
 	 * Context values are resolved at call time, so changes via bindCore/bindUI are reflected.
@@ -801,6 +816,7 @@ export class ExtensionRunner {
 	}
 
 	createCommandContext(): ExtensionCommandContext {
+		// 中文：使用属性描述符而非对象展开，保持 createContext() 中受保护 getter 的惰性求值。展开会立即读取并固定旧值，从而绕过过期实例检查。
 		// Use property descriptors instead of object spread so the guarded getters from
 		// createContext() stay lazy. A spread would eagerly read them once and freeze the
 		// old values into the returned object, bypassing stale-instance checks.
@@ -1106,6 +1122,7 @@ export class ExtensionRunner {
 
 			for (const handler of handlers) {
 				try {
+					// 中文：处理器原地修改 headers，忽略返回值。
 					// Handlers mutate `headers` in place; the return value is ignored.
 					const event: BeforeProviderHeadersEvent = {
 						type: "before_provider_headers",
@@ -1242,6 +1259,7 @@ export class ExtensionRunner {
 		return { skillPaths, promptPaths, themePaths };
 	}
 
+	// 中文：发出 input 事件；各变换串联执行，handled 会短路后续处理。
 	/** Emit input event. Transforms chain, "handled" short-circuits. */
 	async emitInput(
 		text: string,

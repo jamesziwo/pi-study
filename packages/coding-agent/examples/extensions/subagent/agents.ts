@@ -1,3 +1,4 @@
+// 中文：代理发现与配置。
 /**
  * Agent discovery and configuration
  */
@@ -23,6 +24,8 @@ export interface AgentDiscoveryResult {
 	projectAgentsDir: string | null;
 }
 
+// 中文：原始代理 frontmatter。值为 unknown，因为 parseFrontmatter 使用真正的 YAML 解析器，可能出现任何标量或集合。采用类型别名而
+// 非接口，因为 parseFrontmatter 将参数限制为 Record<string, unknown>，只有别名能获得满足要求的隐式索引签名。
 /**
  * Raw agent frontmatter. Values are `unknown` because `parseFrontmatter` runs a
  * real YAML parser, so any scalar or collection can appear here.
@@ -38,6 +41,8 @@ type AgentFrontmatter = {
 	model?: unknown;
 };
 
+// 中文：将 frontmatter 的 tools 值规范化为工具名列表；字符串 tools: read, bash 和数组 tools: [read, bash] 都是有
+// 效且实际使用的 YAML，因此两者均接受。数字、映射、嵌套列表等其他值返回空工具列表而不抛错：此逻辑运行在代理发现过程中，单个坏文件不能导致同目录所有代理不可用。
 /**
  * Normalize a frontmatter `tools` value to a list of tool names.
  *

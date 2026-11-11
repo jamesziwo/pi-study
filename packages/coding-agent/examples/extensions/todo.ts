@@ -1,3 +1,5 @@
+// 中文：Todo 扩展演示通过会话条目管理状态：为模型注册 todo 工具管理待办项，为用户注册 /todos 命令查看列表。状态保存在工具结果 details 中而非外部
+// 文件，因此分支时待办状态自动对应历史中的分叉位置。
 /**
  * Todo Extension - Demonstrates state management via session entries
  *
@@ -34,6 +36,7 @@ const TodoParams = Type.Object({
 	id: Type.Optional(Type.Number({ description: "Todo ID (for toggle)" })),
 });
 
+// 中文：/todos 命令的界面组件。
 /**
  * UI component for the /todos command
  */
@@ -103,10 +106,12 @@ class TodoListComponent {
 }
 
 export default function (pi: ExtensionAPI) {
+	// 中文：内存状态，加载时从会话重建。
 	// In-memory state (reconstructed from session on load)
 	let todos: Todo[] = [];
 	let nextId = 1;
 
+	// 中文：从会话条目重建状态，扫描该工具的结果并按顺序应用。
 	/**
 	 * Reconstruct state from session entries.
 	 * Scans tool results for this tool and applies them in order.
@@ -128,10 +133,12 @@ export default function (pi: ExtensionAPI) {
 		}
 	};
 
+	// 中文：在会话事件发生时重建状态。
 	// Reconstruct state on session events
 	pi.on("session_start", async (_event, ctx) => reconstructState(ctx));
 	pi.on("session_tree", async (_event, ctx) => reconstructState(ctx));
 
+	// 中文：为模型注册 todo 工具。
 	// Register the todo tool for the LLM
 	pi.registerTool({
 		name: "todo",
@@ -280,6 +287,7 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
+	// 中文：为用户注册 /todos 命令。
 	// Register the /todos command for users
 	pi.registerCommand("todos", {
 		description: "Show all todos on the current branch",

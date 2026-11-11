@@ -1,3 +1,4 @@
+// 中文：Hello 工具：最小自定义工具示例。
 /**
  * Hello Tool - Minimal custom tool example
  */

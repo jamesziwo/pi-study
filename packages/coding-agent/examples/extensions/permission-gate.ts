@@ -1,3 +1,4 @@
+// 中文：权限门禁扩展：执行可能危险的 bash 命令之前请求确认。检查的模式包括 rm -rf、sudo、chmod/chown 777。
 /**
  * Permission Gate Extension
  *
@@ -18,6 +19,7 @@ export default function (pi: ExtensionAPI) {
 
 		if (isDangerous) {
 			if (!ctx.hasUI) {
+				// 中文：非交互模式下默认阻止执行。
 				// In non-interactive mode, block by default
 				return { block: true, reason: "Dangerous command blocked (no UI for confirmation)" };
 			}

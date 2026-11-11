@@ -89,6 +89,9 @@ function loadContextFileFromDir(dir: string): { path: string; content: string } 
 	return null;
 }
 
+// 中文：嵌套链接工作树自己的上下文文件会遮蔽主仓库的对应文件：两者属于同一逻辑仓库作用域，加载两份会重复应用上下文。无覆盖时返回 undefined，保持正常祖先继承。返回
+//  realpath 规范路径，因为 git worktree add 写入的 .git 文件 gitdir: 目标使用真实路径，而 cwd 可能仍是符号链接，如
+// macOS 的 /tmp 指向 /private/tmp。
 /**
  * The main repo's context file that a nested linked worktree's own copy shadows: both
  * occupy the same logical repository scope, so loading both applies that context twice. Returns
@@ -104,9 +107,12 @@ function findShadowedContextFile(cwd: string): string | undefined {
 	const commonGitDir = canonicalizePath(gitPaths.commonGitDir);
 	const worktreeRoot = canonicalizePath(gitPaths.repoDir);
 	const mainRepoRoot = dirname(commonGitDir);
+	// 中文：普通仓库中两者为同一目录，返回 false；兄弟工作树的主仓库不是祖先，也返回 false。
 	// False for an ordinary repo, where the two are the same dir, and for a sibling
 	// worktree (`git worktree add ../feat`), whose main repo is not an ancestor.
 	if (!worktreeRoot.startsWith(`${mainRepoRoot}${sep}`)) return undefined;
+	// 中文：公共 git 目录的父目录仅在自身也是同仓库检出目录时才是主工作树根。在 proj/.bare 加 proj/main 的裸仓库布局中，它只是容纳 .bare 的目
+	// 录，不跟踪文件；子模块 gitdir 无 commondir，会落在 .git/modules 下。
 	// dirname of the common git dir is the main worktree root only when that dir is
 	// itself checked out from the same repo. In a bare layout (`proj/.bare` +
 	// `proj/main`) it is just the directory holding `.bare`, which tracks nothing; a
@@ -378,6 +384,7 @@ export class DefaultResourceLoader implements ResourceLoader {
 	}
 
 	async loadProjectTrustExtensions(): Promise<LoadExtensionsResult> {
+		// 中文：启动加载阶段强制按未受信项目设置处理，阻止项目本地扩展／包进入，但仍加载用户／全局及临时 CLI 扩展。
 		// Force untrusted project settings for the bootstrap pass. This keeps project-local
 		// extensions/packages out while still loading user/global and temporary CLI extensions.
 		this.settingsManager.setProjectTrusted(false);
@@ -399,12 +406,14 @@ export class DefaultResourceLoader implements ResourceLoader {
 			this.settingsManager.setProjectTrusted(projectTrusted);
 		}
 
+		// 中文：reload() 保留 SettingsManager.projectTrusted，并按该信任状态重新加载设置。
 		// reload() preserves SettingsManager.projectTrusted and reloads settings for that trust state.
 		await this.settingsManager.reload();
 		const resolvedPaths = await this.packageManager.resolve();
 		const cliExtensionPaths = await this.packageManager.resolveExtensionSources(this.additionalExtensionPaths, {
 			temporary: true,
 		});
+		// 中文：保存在实例上，使重载后的 extendResources 阶段仍能解析包元数据。
 		// Kept on the instance so post-reload passes (extendResources) can still resolve package metadata.
 		this.resourceMetadataByPath = new Map();
 		const metadataByPath = this.resourceMetadataByPath;
@@ -413,6 +422,7 @@ export class DefaultResourceLoader implements ResourceLoader {
 		this.extensionPromptSourceInfos = new Map();
 		this.extensionThemeSourceInfos = new Map();
 
+		// 中文：提取启用路径并保存元数据的辅助函数。
 		// Helper to extract enabled paths and store metadata
 		const getEnabledResources = (resources: ResolvedResource[]): ResolvedResource[] => {
 			for (const r of resources) {
@@ -432,6 +442,7 @@ export class DefaultResourceLoader implements ResourceLoader {
 
 		const enabledSkills = enabledSkillResources.map((resource) => this.mapSkillPath(resource, metadataByPath));
 
+		// 中文：添加 CLI 路径元数据。
 		// Add CLI paths metadata
 		for (const r of cliExtensionPaths.extensions) {
 			if (!metadataByPath.has(r.path)) {
@@ -625,6 +636,7 @@ export class DefaultResourceLoader implements ResourceLoader {
 	}
 
 	private addExtensionConflictDiagnostics(extensionsResult: LoadExtensionsResult): void {
+		// 中文：检测不同扩展之间同名工具、命令或标志的冲突。仍保留所有扩展加载，用诊断报告冲突，优先级由加载顺序决定。
 		// Detect extension conflicts (tools, commands, flags with same names from different extensions)
 		// Keep all extensions loaded. Conflicts are reported as diagnostics, and precedence is handled by load order.
 		const conflicts = this.detectExtensionConflicts(extensionsResult.extensions);
@@ -1060,11 +1072,13 @@ export class DefaultResourceLoader implements ResourceLoader {
 	private detectExtensionConflicts(extensions: Extension[]): Array<{ path: string; message: string }> {
 		const conflicts: Array<{ path: string; message: string }> = [];
 
+		// 中文：跟踪每个工具及标志由哪个扩展注册。
 		// Track which extension registered each tool and flag
 		const toolOwners = new Map<string, string>();
 		const flagOwners = new Map<string, string>();
 
 		for (const ext of extensions) {
+			// 中文：检查工具。
 			// Check tools
 			for (const toolName of ext.tools.keys()) {
 				const existingOwner = toolOwners.get(toolName);
@@ -1078,6 +1092,7 @@ export class DefaultResourceLoader implements ResourceLoader {
 				}
 			}
 
+			// 中文：检查标志。
 			// Check flags
 			for (const flagName of ext.flags.keys()) {
 				const existingOwner = flagOwners.get(flagName);

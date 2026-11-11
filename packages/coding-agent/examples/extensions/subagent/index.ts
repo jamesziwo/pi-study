@@ -1,3 +1,5 @@
+// 中文：子代理工具：将任务交给专门代理。每次调用启动独立 pi 进程，提供隔离的上下文窗口。支持 Single 单任务、Parallel tasks 并行和 Chain
+// chain 串行三种模式，参数结构见英文示例；使用 JSON 模式采集子代理结构化输出。
 /**
  * Subagent Tool - Delegate tasks to specialized agents
  *
@@ -428,12 +430,14 @@ async function runSingleAgent(
 			try {
 				fs.unlinkSync(tmpPromptPath);
 			} catch {
+				// 中文：忽略。
 				/* ignore */
 			}
 		if (tmpPromptDir)
 			try {
 				fs.rmdirSync(tmpPromptDir);
 			} catch {
+				// 中文：忽略。
 				/* ignore */
 			}
 	}
@@ -555,9 +559,11 @@ export default function (pi: ExtensionAPI) {
 					const step = params.chain[i];
 					const taskWithContext = step.task.replace(/\{previous\}/g, previousOutput);
 
+					// 中文：创建包含所有此前结果的更新回调。
 					// Create update callback that includes all previous results
 					const chainUpdate: OnUpdateCallback | undefined = onUpdate
 						? (partial) => {
+								// 中文：合并已完成结果和当前流式结果。
 								// Combine completed results with current streaming result
 								const currentResult = partial.details?.results[0];
 								if (currentResult) {
@@ -613,15 +619,18 @@ export default function (pi: ExtensionAPI) {
 						details: makeDetails("parallel")([]),
 					};
 
+				// 中文：跟踪所有结果以提供流式更新。
 				// Track all results for streaming updates
 				const allResults: SingleResult[] = new Array(params.tasks.length);
 
+				// 中文：初始化结果占位项。
 				// Initialize placeholder results
 				for (let i = 0; i < params.tasks.length; i++) {
 					allResults[i] = {
 						agent: params.tasks[i].agent,
 						agentSource: "unknown",
 						task: params.tasks[i].task,
+						// 中文：-1 表示仍在运行。
 						exitCode: -1, // -1 = still running
 						messages: [],
 						stderr: "",
@@ -652,6 +661,7 @@ export default function (pi: ExtensionAPI) {
 						t.cwd,
 						undefined,
 						signal,
+						// 中文：每个任务的更新回调。
 						// Per-task update callback
 						(partial) => {
 							if (partial.details?.results[0]) {
@@ -729,6 +739,7 @@ export default function (pi: ExtensionAPI) {
 					theme.fg("muted", ` [${scope}]`);
 				for (let i = 0; i < Math.min(args.chain.length, 3); i++) {
 					const step = args.chain[i];
+					// 中文：显示时清理 {previous} 占位符。
 					// Clean up {previous} placeholder for display
 					const cleanTask = step.task.replace(/\{previous\}/g, "").trim();
 					const preview = cleanTask.length > 40 ? `${cleanTask.slice(0, 40)}...` : cleanTask;
@@ -892,6 +903,7 @@ export default function (pi: ExtensionAPI) {
 						);
 						container.addChild(new Text(theme.fg("muted", "Task: ") + theme.fg("dim", r.task), 0, 0));
 
+						// 中文：显示工具调用。
 						// Show tool calls
 						for (const item of displayItems) {
 							if (item.type === "toolCall") {
@@ -905,6 +917,7 @@ export default function (pi: ExtensionAPI) {
 							}
 						}
 
+						// 中文：以 Markdown 显示最终输出。
 						// Show final output as markdown
 						if (finalOutput) {
 							container.addChild(new Spacer(1));
@@ -923,6 +936,7 @@ export default function (pi: ExtensionAPI) {
 					return container;
 				}
 
+				// 中文：折叠视图。
 				// Collapsed view
 				let text =
 					icon +
@@ -977,6 +991,7 @@ export default function (pi: ExtensionAPI) {
 						);
 						container.addChild(new Text(theme.fg("muted", "Task: ") + theme.fg("dim", r.task), 0, 0));
 
+						// 中文：显示工具调用。
 						// Show tool calls
 						for (const item of displayItems) {
 							if (item.type === "toolCall") {
@@ -990,6 +1005,7 @@ export default function (pi: ExtensionAPI) {
 							}
 						}
 
+						// 中文：以 Markdown 显示最终输出。
 						// Show final output as markdown
 						if (finalOutput) {
 							container.addChild(new Spacer(1));
@@ -1008,6 +1024,7 @@ export default function (pi: ExtensionAPI) {
 					return container;
 				}
 
+				// 中文：折叠视图，或仍在运行时的视图。
 				// Collapsed view (or still running)
 				let text = `${icon} ${theme.fg("toolTitle", theme.bold("parallel "))}${theme.fg("accent", status)}`;
 				for (const r of details.results) {
