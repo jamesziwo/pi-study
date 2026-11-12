@@ -492,6 +492,7 @@ export interface AssistantImages {
 
 import type { TSchema } from "typebox";
 
+// 中文：用于约束采样的 OpenAI 语法格式变体。
 /** OpenAI grammar variants for constrained sampling. */
 export type GrammarFormat = "openai_lark" | "openai_regex";
 
@@ -503,6 +504,10 @@ export type GrammarVariants = Partial<Record<GrammarFormat, string>>;
  * The `json_schema` value roughly maps to the concept of `strict` in APIs which is
  * implemented as json-schema constrained sampling by APIs. Grammar variants let
  * callers provide provider-specific encodings of the same intended language.
+ *
+ * 中文：工具可选的提供方侧约束采样配置。
+ * `json_schema` 大致对应 API 中的 `strict` 概念，API 通过 JSON Schema 约束采样实现它。
+ * 语法变体允许调用方针对同一种目标语言，提供适用于不同提供方的编码表示。
  */
 export type ConstrainedSamplingConfig =
 	| {
