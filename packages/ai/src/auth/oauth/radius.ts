@@ -1,3 +1,5 @@
+// 中文：Radius 网关 OAuth 流程。Radius 是 pi-messages 网关。OAuth 客户端 API 位于配置的网关上；只通过发现机制获取交互式浏览器授
+// 权端点。模型目录由 Radius 提供方负责加载。注意：本模块使用 node:http 创建 OAuth 回调服务器，仅用于命令行环境，不适用于浏览器。
 /**
  * Radius gateway OAuth flow.
  *
@@ -9,6 +11,7 @@
  * It is only intended for CLI use, not browser environments.
  */
 
+// 中文：切勿改为顶层导入，否则会破坏浏览器或 Vite 构建。
 // NEVER convert to top-level imports - breaks browser/Vite builds
 let _http: typeof import("node:http") | null = null;
 if (typeof process !== "undefined" && (process.versions?.node || process.versions?.bun)) {

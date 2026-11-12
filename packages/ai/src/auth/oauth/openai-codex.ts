@@ -1,3 +1,5 @@
+// 中文：OpenAI Codex 的 ChatGPT OAuth 流程。注意：本模块使用 Node.js 的 crypto 和 http 处理 OAuth 回调，仅用于命令
+// 行环境，不适用于浏览器。
 /**
  * OpenAI Codex (ChatGPT OAuth) flow
  *
@@ -5,6 +7,7 @@
  * It is only intended for CLI use, not browser environments.
  */
 
+// 中文：切勿改为顶层导入，否则会破坏浏览器或 Vite 构建。
 // NEVER convert to top-level imports - breaks browser/Vite builds
 let _randomBytes: typeof import("node:crypto").randomBytes | null = null;
 let _http: typeof import("node:http") | null = null;
@@ -81,6 +84,7 @@ function parseAuthorizationInput(input: string): { code?: string; state?: string
 			state: url.searchParams.get("state") ?? undefined,
 		};
 	} catch {
+		// 中文：不是 URL。
 		// not a URL
 	}
 
@@ -383,6 +387,7 @@ function startLocalOAuthServer(state: string): Promise<OAuthServerInfo> {
 						try {
 							server.close();
 						} catch {
+							// 中文：忽略错误。
 							// ignore
 						}
 					},
@@ -505,6 +510,7 @@ async function loginOpenAICodex(interaction: ProviderAuthInteraction): Promise<O
 	}
 }
 
+// 中文：刷新 OpenAI Codex OAuth token。
 /**
  * Refresh OpenAI Codex OAuth token
  */

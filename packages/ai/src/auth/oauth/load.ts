@@ -1,5 +1,7 @@
 import type { OAuthAuth } from "../types.ts";
 
+// 中文：通过变量形式的模块路径加载 OAuth 流程模块，使打包器无法沿导入链进入仅支持 Node 的流程代码，例如 node:http 回调服务器及
+// node:crypto PKCE。通过 .ts/.js 后缀改写，使该方式在源码和构建产物中都有效。
 /**
  * Loads an OAuth flow module through a variable specifier so bundlers cannot
  * follow the import into Node-only flow code (`node:http` callback servers,
@@ -23,6 +25,7 @@ type OAuthFlowLoaders = {
 
 let bundledLoaders: OAuthFlowLoaders | undefined;
 
+// 中文：为独立运行的 Bun 二进制程序注册静态打包的 OAuth 流程。
 /** Registers statically bundled OAuth flows for standalone Bun binaries. */
 export function registerBundledOAuthFlowLoaders(loaders: OAuthFlowLoaders): void {
 	bundledLoaders = loaders;

@@ -1,3 +1,5 @@
+// 中文：Anthropic OAuth 流程，适用于 Claude Pro/Max。注意：本模块使用 Node.js 的 http.createServer 创建
+// OAuth 回调服务器，仅用于命令行环境，不适用于浏览器。
 /**
  * Anthropic OAuth flow (Claude Pro/Max)
  *
@@ -60,6 +62,7 @@ function parseAuthorizationInput(input: string): { code?: string; state?: string
 			state: url.searchParams.get("state") ?? undefined,
 		};
 	} catch {
+		// 中文：不是 URL。
 		// not a URL
 	}
 
@@ -311,6 +314,7 @@ async function loginAnthropic(interaction: ProviderAuthInteraction): Promise<OAu
 	}
 }
 
+// 中文：刷新 Anthropic OAuth token。
 /**
  * Refresh Anthropic OAuth token
  */

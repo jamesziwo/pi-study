@@ -1,3 +1,6 @@
+// 中文：OpenRouter OAuth PKCE 流程。OpenRouter 将授权码交换为永久、由用户控制的 API key，而非会过期的访问令牌与刷新令牌对。回调由临
+// 时端口上的一次性本地回环服务器处理，同时与手动输入提示竞争；这样在远程或无图形界面的会话中，若浏览器无法访问回环服务器，用户仍可粘贴重定向 URL。注意：本模块使用
+// Node.js 的 http.createServer 创建 OAuth 回调服务器，仅用于命令行环境，不适用于浏览器。
 /**
  * OpenRouter OAuth PKCE flow.
  *
@@ -30,10 +33,13 @@ type JsonObject = Record<string, unknown>;
 
 type OpenRouterCallbackServer = {
 	callbackUrl: string;
+	// 中文：停止监听并清除定时器，但不使 waitForCredential 完成或失败。
 	/** Stop listening and release timers without settling `waitForCredential`. */
 	close: () => void;
+	// 中文：将登录交给手动输入授权码，除非已有回调接管了交换流程。
 	/** Hand the login over to manual code entry unless a callback already claimed the exchange. */
 	cancelWait: () => void;
+	// 中文：浏览器回调完成密钥交换后返回凭据；cancelWait 将登录交给手动输入授权码后返回 null。超时、取消或交换失败时拒绝。
 	/**
 	 * Resolves with the credential once a browser callback completes the key
 	 * exchange, or with null once `cancelWait` hands the login over to manual
@@ -56,6 +62,7 @@ function parseAuthorizationInput(input: string): string | undefined {
 	try {
 		return new URL(value).searchParams.get("code") ?? undefined;
 	} catch {
+		// 中文：不是 URL。
 		// not a URL
 	}
 
@@ -231,6 +238,7 @@ async function startCallbackServer(
 	return {
 		callbackUrl: `http://${callbackHost}:${address.port}${callbackPath}`,
 		close,
+		// 中文：已接管流程的回调正在交换授权码，让该交换操作决定登录结果。
 		// A claimed callback is already exchanging its code; let that exchange settle the login.
 		cancelWait: () => {
 			if (!claimed) finish({ credential: null });

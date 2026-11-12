@@ -1,3 +1,5 @@
+// 中文：Kimi Code 订阅的 OAuth 流程。向 https://auth.kimi.com 发起 RFC 8628 设备授权，响应格式为 JSON。访问令牌通过
+// Authorization: Bearer 请求头为 https://api.kimi.com/coding 的请求提供认证。
 /**
  * Kimi Code (subscription) OAuth flow
  *
@@ -55,6 +57,7 @@ async function readJson(response: Response): Promise<Record<string, unknown> | n
 	}
 }
 
+// 中文：验证 URI 会在用户浏览器中打开，因此仅信任 HTTP 或 HTTPS URL。
 /** The verification URI is opened in the user's browser; only http(s) URLs are trusted. */
 function trustedHttpUrl(value: unknown): string | null {
 	if (typeof value !== "string" || !value) return null;
@@ -246,6 +249,7 @@ async function refreshToken(oauthHost: string, refreshTokenValue: string, signal
 			return parseTokenResponse(json, "refresh");
 		}
 
+		// 中文：未获授权：已存储的凭据已失效；Models 会清除它并提示重新登录。
 		// Unauthorized: the stored credential is dead; Models clears it and prompts re-login.
 		if (response.status === 401 || response.status === 403 || json?.error === "invalid_grant") {
 			const description = typeof json?.error_description === "string" ? `: ${json.error_description}` : "";

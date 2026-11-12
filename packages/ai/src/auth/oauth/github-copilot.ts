@@ -1,3 +1,4 @@
+// 中文：GitHub Copilot OAuth 流程。
 /**
  * GitHub Copilot OAuth flow
  */
@@ -61,6 +62,9 @@ function getUrls(domain: string): {
 	};
 }
 
+// 中文：从 Copilot token 中解析 proxy-ep 并转换为 API 基础 URL。token 格式为
+// tid=...;exp=...;proxy-ep=proxy.individual.githubcopilot.com;...，返回的 API URL 类似
+// https://api.individual.githubcopilot.com。
 /**
  * Parse the proxy-ep from a Copilot token and convert to API base URL.
  * Token format: tid=...;exp=...;proxy-ep=proxy.individual.githubcopilot.com;...
@@ -70,17 +74,20 @@ function getBaseUrlFromToken(token: string): string | null {
 	const match = token.match(/proxy-ep=([^;]+)/);
 	if (!match) return null;
 	const proxyHost = match[1];
+	// 中文：将 proxy.xxx 转换为 api.xxx。
 	// Convert proxy.xxx to api.xxx
 	const apiHost = proxyHost.replace(/^proxy\./, "api.");
 	return `https://${apiHost}`;
 }
 
 function getGitHubCopilotBaseUrl(token?: string, enterpriseDomain?: string): string {
+	// 中文：存在 token 时，从 proxy-ep 提取基础 URL。
 	// If we have a token, extract the base URL from proxy-ep
 	if (token) {
 		const urlFromToken = getBaseUrlFromToken(token);
 		if (urlFromToken) return urlFromToken;
 	}
+	// 中文：企业版或 token 解析失败时的回退方案。
 	// Fallback for enterprise or if token parsing fails
 	if (enterpriseDomain) return `https://copilot-api.${enterpriseDomain}`;
 	return "https://api.individual.githubcopilot.com";
@@ -172,6 +179,7 @@ async function fetchGitHubCopilotModels(
 	retryPolicy: { maxRetries: number; maxElapsedMs: number },
 ) {
 	const baseUrl = getGitHubCopilotBaseUrl(copilotToken, enterpriseDomain);
+	// 中文：某些个人账户即使明确启用了策略，所有选择器标志仍返回 false。仅对该端点启用回退，以便其他账户类型继续遵循严格的选择器语义。
 	// Some Individual accounts return false for every picker flag despite explicit enabled policies.
 	// Limit the fallback to that endpoint so other account types keep strict picker semantics.
 	const allowPolicyFallback = baseUrl === "https://api.individual.githubcopilot.com";
@@ -239,6 +247,7 @@ async function startDeviceFlow(domain: string, signal: AbortSignal): Promise<Dev
 		throw new Error("Invalid device code response fields");
 	}
 
+	// 中文：验证 URI 会在用户浏览器中打开；为防止 open 打开可执行文件等内容，强制其为 URL。
 	// The verification URI is opened in the user's browser and to prevent `open` from
 	// opening an executable or similar, we force it to be a URL.
 	let parsedUri: URL;
@@ -347,6 +356,7 @@ async function refreshGitHubCopilotAccessToken(
 	};
 }
 
+// 中文：刷新 GitHub Copilot token。
 /**
  * Refresh GitHub Copilot token
  */
@@ -366,6 +376,7 @@ async function refreshGitHubCopilotToken(
 	};
 }
 
+// 中文：为用户的 GitHub Copilot 账户启用模型。某些模型（例如 Claude、Grok）必须先启用才能使用。
 /**
  * Enable a model for the user's GitHub Copilot account.
  * This is required for some models (like Claude, Grok) before they can be used.
@@ -407,6 +418,7 @@ async function enableGitHubCopilotModel(
 	return response.ok;
 }
 
+// 中文：启用请求的 GitHub Copilot 模型，并返回成功启用的 ID。策略更新尽力完成；限流重试耗尽后停止整个批次。
 /**
  * Enable the requested GitHub Copilot models and return the successful IDs.
  * Policy updates are best effort; exhausted rate limiting stops the batch.
@@ -497,6 +509,7 @@ export const githubCopilotOAuth: OAuthAuth = {
 	refresh: (credential, signal) =>
 		refreshGitHubCopilotToken(credential.refresh, copilotEnterpriseDomain(credential), signal),
 
+	// 中文：为每个请求推导当前凭据对应的代理端点。
 	/** Derive the credential-specific proxy endpoint for each request. */
 	async toAuth(credential) {
 		return {

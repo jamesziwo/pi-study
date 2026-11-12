@@ -1,3 +1,4 @@
+// 中文：xAI OAuth 设备码流程。
 /**
  * xAI OAuth device-code flow.
  */
@@ -9,6 +10,7 @@ const XAI_CLIENT_ID = "b1a00492-073a-47ea-816f-4c329264a828";
 const XAI_SCOPE = "openid profile email offline_access grok-cli:access api:access";
 const XAI_DEVICE_CODE_URL = "https://auth.x.ai/oauth2/device/code";
 const XAI_TOKEN_URL = "https://auth.x.ai/oauth2/token";
+// 中文：在报告的过期时间之前提前刷新，避免使用在请求过程中失效的 token。
 // Refresh slightly before the reported expiry to avoid using a token that dies mid-request.
 const REFRESH_SKEW_MS = 5 * 60 * 1000;
 const DEFAULT_TOKEN_LIFETIME_SECONDS = 3600;
@@ -46,6 +48,7 @@ function positiveNumber(body: JsonObject, field: string): number {
 	return value;
 }
 
+// 中文：验证 URI 会在用户浏览器中打开；强制使用 HTTPS URL，防止恶意响应使 open 启动其他内容。
 // The verification URI is opened in the user's browser; force it to be an https URL
 // so a malicious response cannot make `open` launch something else.
 function validateVerificationUri(raw: string): string {
@@ -106,6 +109,7 @@ function requestFailure(action: string, response: OAuthHttpResponse): Error {
 }
 
 function parseDeviceCode(body: JsonObject): XaiDeviceCode {
+	// 中文：RFC 8628 允许 interval 为 0，表示无最短等待时间；遇到非正数或格式错误的值时，回退到轮询器的默认值，而不直接报错。
 	// RFC 8628 allows interval 0 (no minimum wait); fall back to the poller's
 	// default instead of failing on non-positive or malformed values.
 	const interval = body.interval;
@@ -127,6 +131,7 @@ function parseDeviceCode(body: JsonObject): XaiDeviceCode {
 
 function credentialsFromTokenResponse(body: JsonObject, previousRefreshToken?: string): OAuthCredential {
 	const access = requiredString(body, "access_token");
+	// 中文：刷新时若未轮换 token，xAI 可能省略 refresh_token。
 	// xAI may omit refresh_token on refresh when the token is not rotated.
 	const refresh =
 		body.refresh_token === undefined && previousRefreshToken

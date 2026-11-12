@@ -3,8 +3,10 @@ const TIMEOUT_MESSAGE = "Device flow timed out";
 const SLOW_DOWN_TIMEOUT_MESSAGE =
 	"Device flow timed out after one or more slow_down responses. This is often caused by clock drift in WSL or VM environments. Please sync or restart the VM clock and try again.";
 const MINIMUM_INTERVAL_MS = 1000;
+// 中文：RFC 8628 第 3.2 节：授权服务器省略 interval 时，客户端必须使用 5 秒的轮询间隔。
 // RFC 8628 section 3.2: if the authorization server omits `interval`, the client must use 5 seconds.
 const DEFAULT_POLL_INTERVAL_SECONDS = 5;
+// 中文：RFC 8628 第 3.5 节：slow_down 表示轮询间隔必须增加 5 秒。
 // RFC 8628 section 3.5: `slow_down` means the polling interval must increase by 5 seconds.
 const SLOW_DOWN_INTERVAL_INCREMENT_MS = 5000;
 
@@ -75,6 +77,8 @@ export async function pollOAuthDeviceCodeFlow<T>(options: OAuthDeviceCodePollOpt
 		}
 		if (result.status === "slow_down") {
 			slowDownResponses += 1;
+			// 中文：服务器提供间隔时使用该值，GitHub 会在 interval 中报告新的最小间隔；仅依赖客户端跟踪的值，在 WSL 或虚拟机时钟漂移时可能持续过早轮询。否则按
+			// RFC 8628 第 3.5 节增加 5 秒。
 			// Use the server-provided interval when given (GitHub reports the new required minimum
 			// in `interval`); trusting only a client-tracked value risks polling early forever under
 			// WSL/VM clock drift. Otherwise apply RFC 8628 section 3.5: increase by 5 seconds.
