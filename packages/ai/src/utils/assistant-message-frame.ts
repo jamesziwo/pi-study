@@ -1,6 +1,7 @@
 import type { AssistantMessage, AssistantMessageEvent, TextContent, ThinkingContent, ToolCall } from "../types.ts";
 import { parseStreamingJson } from "./json-parse.ts";
 
+// 中文：紧凑、可重放的助手消息进度。刻意不包含终态收尾，终态必须单独持久化。
 /**
  * Compact, replayable assistant-message progress. Terminal settlement is
  * intentionally excluded and must be persisted separately.
@@ -131,6 +132,7 @@ function isJsonPrefix(snapshot: unknown, current: unknown): boolean {
 	);
 }
 
+// 中文：编码一条助手流。`partial` 仍是共享的实时累积对象；编码器使用逐块偏移，避免消费较早的排队事件时再次重放已经可见的增量。
 /**
  * Encodes one assistant stream. `partial` remains a shared live accumulator;
  * the encoder uses per-block offsets to avoid replaying deltas already visible
@@ -246,6 +248,7 @@ export class AssistantMessageFrameEncoder {
 				state.catchupJson += event.delta;
 				const argumentsValue = parseStreamingJson<ToolCall["arguments"]>(state.catchupJson);
 				if (serializedArguments(argumentsValue) !== state.snapshotArguments) {
+					// 中文：旧版语法调用在 toolcall_start 中包含初始输入，但其 JSON 增量流仍从空输入开始。因此，解析得到的参数可能扩展起始快照，而非精确重现它。
 					// Legacy grammar calls include the initial input in toolcall_start, but their
 					// JSON delta stream still begins at an empty input. Its parsed arguments can
 					// therefore extend, rather than exactly reproduce, the start snapshot.
@@ -365,6 +368,7 @@ function activeBlock(
 	return { block, state };
 }
 
+// 中文：重放紧凑帧而不修改帧本身。如果可迭代对象中没有 start 帧，则返回 `undefined`。
 /**
  * Replay compact frames without mutating them. Returns `undefined` when the
  * iterable contains no start frame.

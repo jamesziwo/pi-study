@@ -2,6 +2,7 @@ import type { ImageContent, TextContent, ThinkingContent, ToolCall } from "../ty
 
 type Content = TextContent | ImageContent | ThinkingContent | ToolCall;
 
+// 中文：提取并连接消息内容中的文本。
 /** Extract and join text from message content. */
 export function contentText(content: string | readonly Content[], separator = "\n"): string {
 	if (typeof content === "string") return content;

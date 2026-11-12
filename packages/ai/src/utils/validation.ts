@@ -292,6 +292,8 @@ function formatValidationPath(error: TLocalizedValidationError): string {
 	return path || "root";
 }
 
+// 中文：按名称查找工具，并依据其 TypeBox schema 校验工具调用参数。参数 tools 为工具定义数组，toolCall 为 LLM 发出的工具调用；返回校验后
+// 的参数。工具未找到或校验失败时抛出 Error。
 /**
  * Finds a tool by name and validates the tool call arguments against its TypeBox schema
  * @param tools Array of tool definitions
@@ -307,6 +309,8 @@ export function validateToolCall(tools: Tool[], toolCall: ToolCall): any {
 	return validateToolArguments(tool, toolCall);
 }
 
+// 中文：依据工具的 TypeBox schema 校验工具调用参数。参数 tool 是带 TypeBox schema 的工具定义，toolCall 是 LLM 发出的工具
+// 调用；返回校验后、可能经过类型转换的参数。校验失败时抛出带格式化消息的 Error。
 /**
  * Validates tool call arguments against the tool's TypeBox schema
  * @param tool The tool definition with TypeBox schema

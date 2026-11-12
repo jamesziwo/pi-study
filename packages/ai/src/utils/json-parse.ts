@@ -24,6 +24,7 @@ function escapeControlCharacter(char: string): string {
 	}
 }
 
+// 中文：修复格式错误的 JSON 字符串字面量：转义字符串中的原始控制字符，并将无效转义字符前的反斜杠加倍。
 /**
  * Repairs malformed JSON string literals by:
  * - escaping raw control characters inside strings
@@ -94,6 +95,8 @@ export function parseJsonWithRepair<T>(json: string): T {
 	}
 }
 
+// 中文：尝试解析流式传输中可能尚不完整的 JSON。即使 JSON 不完整也始终返回有效对象。参数 partialJson 是流中的部分 JSON 字符串；返回解析后的对象
+// ，解析失败则返回空对象。
 /**
  * Attempts to parse potentially incomplete JSON during streaming.
  * Always returns a valid object, even if the JSON is incomplete.
