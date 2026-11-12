@@ -169,6 +169,30 @@
       "sourceSha256": "eccbaea04d574880b788495309230a952b1622bd6167b4e7cf2d5d8bfd6788c8",
       "title": "会话基准测试",
       "translatedUnits": 4
+    },
+    {
+      "source": "packages/agent/docs/assistant-durability.md",
+      "translation": "study/zh-CN/packages/agent/docs/assistant-durability.md",
+      "sourceCommit": "eccca93e642558afbdba3b122cb11f5cbbf66f08",
+      "sourceSha256": "c07961d0fb7fb8416bf980544f952cf1491f8c1526822a8eb4b02b03490e164c",
+      "title": "助手部分输出持久化",
+      "translatedUnits": 23
+    },
+    {
+      "source": "packages/agent/docs/runtime-simplification.md",
+      "translation": "study/zh-CN/packages/agent/docs/runtime-simplification.md",
+      "sourceCommit": "eccca93e642558afbdba3b122cb11f5cbbf66f08",
+      "sourceSha256": "1bf746b56adf8588ce348d0936c696737614fd88946e213a44b9fc19e8029238",
+      "title": "AgentHarness 运行时简化",
+      "translatedUnits": 26
+    },
+    {
+      "source": "packages/agent/docs/post-wp05-roadmap.md",
+      "translation": "study/zh-CN/packages/agent/docs/post-wp05-roadmap.md",
+      "sourceCommit": "eccca93e642558afbdba3b122cb11f5cbbf66f08",
+      "sourceSha256": "2dba08e6aaffc7e8317b1e1c8a35cf3f390cc1bdc7cb7634902c80f26ab72c36",
+      "title": "WP05 后续路线审计",
+      "translatedUnits": 27
     }
   ]
 }

@@ -10,6 +10,9 @@
 
 | 原始相对路径 | 中文阅读版 | 英文原文 |
 |---|---|---|
+| `packages/agent/docs/assistant-durability.md` | [助手部分输出持久化](packages/agent/docs/assistant-durability.md) | [原文](../../packages/agent/docs/assistant-durability.md) |
+| `packages/agent/docs/runtime-simplification.md` | [AgentHarness 运行时简化](packages/agent/docs/runtime-simplification.md) | [原文](../../packages/agent/docs/runtime-simplification.md) |
+| `packages/agent/docs/post-wp05-roadmap.md` | [WP05 后续路线审计](packages/agent/docs/post-wp05-roadmap.md) | [原文](../../packages/agent/docs/post-wp05-roadmap.md) |
 | `packages/agent/docs/rpc.md` | [Facet 服务 RPC](packages/agent/docs/rpc.md) | [原文](../../packages/agent/docs/rpc.md) |
 | `packages/agent/docs/telemetry.md` | [调用上下文与遥测](packages/agent/docs/telemetry.md) | [原文](../../packages/agent/docs/telemetry.md) |
 | `packages/agent/benchmark/session/README.md` | [会话基准测试](packages/agent/benchmark/session/README.md) | [原文](../../packages/agent/benchmark/session/README.md) |
