@@ -20,6 +20,7 @@ export interface ShellCaptureProgress {
 
 export interface ShellCaptureOptions extends Omit<ShellExecOptions, "capture" | "onUpdate"> {
 	onChunk?: (chunk: string, getProgress: () => ShellCaptureProgress, context: Context) => void;
+	// 中文：将 shell 执行失败与已捕获的输出一起返回，而不是返回失败的 Result。
 	/** Return shell execution failures with captured output instead of as a failed Result. */
 	returnExecutionErrors?: boolean;
 }
@@ -40,6 +41,7 @@ function progressFrom(output: ShellOutputView): ShellCaptureProgress {
 	};
 }
 
+// 中文：为需要一个有界最终视图的调用方提供兼容收集器。源端捕获、自适应发布及溢出写文件仍由执行环境负责。
 /**
  * Compatibility collector for callers that need one bounded final view.
  * Source-side capture, adaptive publication, and spilling remain owned by the
@@ -72,6 +74,7 @@ export async function executeShellWithCapture(
 						: update.kind === "replace" && previous === undefined
 							? output.text
 							: undefined;
+				// 中文：仅元数据更新以及达到上限后的替换不包含新的增量块。若报告其完整视图，会让累积此兼容回调输出的调用方重复记录字节。
 				// A metadata-only update and a post-cap replacement contain no new
 				// incremental chunk. Reporting their complete view would duplicate bytes
 				// for callers that accumulate this compatibility callback.

@@ -8,6 +8,8 @@ export interface AdaptivePublisherOptions<TValue, TUpdate> {
 	targetBytesPerSecond?: number;
 }
 
+// 中文：发布最新状态，不将中间修改逐个排队。空闲后首次出现的脏状态立即发布；之后每次发布按编码后的大小设置成比例的延迟，并以最小间隔限制事件数量。一个尾随计时器保证最终会发
+// 布。
 /**
  * Publishes the latest state without queuing intermediate mutations.
  *
@@ -62,6 +64,7 @@ export class AdaptivePublisher<TValue, TUpdate> {
 		this.#published = current;
 		this.#dirty = false;
 		this.#nextEmitAt = now + Math.max(this.#minIntervalMs, (encodedBytes * 1000) / this.#targetBytesPerSecond);
+		// 中文：先提交状态，再投递。消费者可能应用更新后抛错，或重入生产方；保留旧基准会导致重复发送该增量。
 		// Commit before delivery. A consumer may apply the update and then throw or
 		// reenter the producer; retaining the old baseline would duplicate that delta.
 		this.#options.publish(update);

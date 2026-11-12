@@ -15,6 +15,8 @@ interface OutputCaptureHandlers {
 	onError(error: unknown): void;
 }
 
+// 中文：维护并发布一个有界 shell 输出视图。发布受限流期间收到的写入合并为最新视图。小变化保持及时响应，整个窗口更换则带来成比例的更长延迟。空闲后的首次更新及显式的最
+// 终刷新均立即执行。
 /**
  * Maintains and publishes one bounded shell-output view.
  *
