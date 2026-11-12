@@ -1,8 +1,11 @@
+// 中文：供通过服务器路由 LLM 调用的应用使用的代理流函数。
+// 服务器管理认证，并将请求代理到 LLM 提供方。
 /**
  * Proxy stream function for apps that route LLM calls through a server.
  * The server manages auth and proxies requests to LLM providers.
  */
 
+// 中文：内部导入 JSON 解析工具。
 // Internal import for JSON parsing utility
 import {
 	type AssistantMessage,
@@ -16,6 +19,7 @@ import {
 	type ToolCall,
 } from "@earendil-works/pi-ai";
 
+// 中文：创建与 ProxyMessageEventStream 对应的流类。
 // Create stream class matching ProxyMessageEventStream
 class ProxyMessageEventStream extends EventStream<AssistantMessageEvent, AssistantMessage> {
 	constructor() {
@@ -30,6 +34,7 @@ class ProxyMessageEventStream extends EventStream<AssistantMessageEvent, Assista
 	}
 }
 
+// 中文：代理事件类型；服务器发送时移除 partial 字段，以降低带宽占用。
 /**
  * Proxy event types - server sends these with partial field stripped to reduce bandwidth.
  */
@@ -74,14 +79,20 @@ type ProxySerializableStreamOptions = Pick<
 >;
 
 export interface ProxyStreamOptions extends ProxySerializableStreamOptions {
+	// 中文：代理请求的本地中止信号。
 	/** Local abort signal for the proxy request */
 	signal?: AbortSignal;
+	// 中文：代理服务器的认证令牌。
 	/** Auth token for the proxy server */
 	authToken: string;
+	// 中文：代理服务器 URL，例如 "https://genai.example.com"。
 	/** Proxy server URL (e.g., "https://genai.example.com") */
 	proxyUrl: string;
 }
 
+// 中文：通过服务器代理的流函数，而非直接调用 LLM 提供方。
+// 服务器从增量事件中移除 partial 字段以降低带宽占用，客户端重建部分消息。
+// 创建需要经过代理的 Agent 时，将其用于 streamFn 选项；下方示例代码保留原样。
 /**
  * Stream function that proxies through a server instead of calling LLM providers directly.
  * The server strips the partial field from delta events to reduce bandwidth.
@@ -121,6 +132,7 @@ export function streamProxy(model: Model<any>, context: Context, options: ProxyS
 	const stream = new ProxyMessageEventStream();
 
 	(async () => {
+		// 中文：初始化部分消息，随后根据事件逐步累积内容。
 		// Initialize the partial message that we'll build up from events
 		const partial: AssistantMessage = {
 			role: "assistant",
@@ -175,6 +187,7 @@ export function streamProxy(model: Model<any>, context: Context, options: ProxyS
 						errorMessage = `Proxy error: ${errorData.error}`;
 					}
 				} catch {
+					// 中文：无法解析错误响应。
 					// Couldn't parse error response
 				}
 				throw new Error(errorMessage);
@@ -218,6 +231,7 @@ export function streamProxy(model: Model<any>, context: Context, options: ProxyS
 				throw new Error("Request aborted by user");
 			}
 
+			// 中文：最后一个事件可能不以换行符结束；刷新解码器并处理缓冲区剩余内容。
 			// The final event may not be newline-terminated; flush the decoder and
 			// process whatever is left in the buffer.
 			buffer += decoder.decode();
@@ -226,6 +240,8 @@ export function streamProxy(model: Model<any>, context: Context, options: ProxyS
 			}
 
 			if (!sawTerminalEvent) {
+				// 中文：正常到达 EOF 却没有 done/error 事件，意味着服务器中途丢弃了响应。
+				// 将其报告为错误，避免消费者一直等待永远不会到达的结果。
 				// A clean EOF without a done/error event means the server dropped the
 				// response mid-stream. Surface it as an error instead of leaving
 				// consumers waiting on a result that never arrives.
@@ -260,6 +276,7 @@ export function streamProxy(model: Model<any>, context: Context, options: ProxyS
 	return stream;
 }
 
+// 中文：处理代理事件并更新部分消息。
 /**
  * Process a proxy event and update the partial message.
  */
@@ -350,6 +367,7 @@ function processProxyEvent(
 			if (content?.type === "toolCall") {
 				(content as any).partialJson += proxyEvent.delta;
 				content.arguments = parseStreamingJson((content as any).partialJson) || {};
+				// 中文：触发响应式更新。
 				partial.content[proxyEvent.contentIndex] = { ...content }; // Trigger reactivity
 				return {
 					type: "toolcall_delta",
