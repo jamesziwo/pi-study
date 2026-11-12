@@ -36,6 +36,7 @@ export function selectBranchFork(
 	return { scope: "branch", branch: options.branch, destinationTip };
 }
 
+// 中文：将一条当前标量记录或仍保留的列表元素投影到目标状态。
 /** Project one current scalar row or surviving list element into destination state. */
 export function projectForkCurrentStateWrite(
 	write: CommittedValueSetWrite | CommittedListAppendWrite,

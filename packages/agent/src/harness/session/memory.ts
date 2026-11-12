@@ -108,6 +108,7 @@ export class MemoryStorage implements Storage {
 		return Promise.resolve(this.storageState.getStats());
 	}
 
+	// 中文：在源提交之间的一个串行化边界上构造目标存储。
 	/** Construct a destination storage at one serialized boundary between source commits. */
 	fork(options: ForkOptions): Promise<MemoryStorage> {
 		if (this.state !== "open") return Promise.reject(new Error("MemoryStorage is closed"));
@@ -373,6 +374,7 @@ export class MemorySessionRepo implements SessionRepo {
 	}
 
 	open(metadata: SessionMetadata, _context: Context): Promise<Session> {
+		// 中文：内存会话始终以当前存储版本创建，因此持久化后端的版本准入检查不适用于这里。
 		// Memory sessions are always created at the current storage version, so
 		// persistent-backend version gating does not apply here.
 		this.assertOpen();

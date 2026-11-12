@@ -41,6 +41,7 @@ export interface StorageBackedSessionOptions {
 	onClose?: () => void;
 }
 
+// 中文：持久化会话状态内部不一致，无法安全推进。
 /** Durable session state is internally inconsistent and cannot be safely advanced. */
 export class SessionInvariantError extends Error {
 	constructor(message: string) {
@@ -49,6 +50,7 @@ export class SessionInvariantError extends Error {
 	}
 }
 
+// 中文：请求的 Branch 名称无效。
 /** A requested Branch name is invalid. */
 export class SessionInvalidBranchError extends Error {
 	readonly branch: string;
@@ -62,6 +64,7 @@ export class SessionInvalidBranchError extends Error {
 	}
 }
 
+// 中文：请求的分支已存在。
 /** A requested branch already exists. */
 export class SessionBranchExistsError extends Error {
 	readonly branch: string;
@@ -73,6 +76,7 @@ export class SessionBranchExistsError extends Error {
 	}
 }
 
+// 中文：尚处于 pending 状态的助手消息不能持久化为会话条目。
 /** A pending assistant message cannot be persisted as a session entry. */
 export class SessionPendingAssistantMessageError extends Error {
 	constructor() {
@@ -81,6 +85,7 @@ export class SessionPendingAssistantMessageError extends Error {
 	}
 }
 
+// 中文：请求的目标会话条目不存在。
 /** A requested session entry target does not exist. */
 export class SessionUnknownTargetError extends Error {
 	readonly targetId: string;
@@ -220,6 +225,7 @@ class StorageBackedBranch implements Branch {
 	}
 }
 
+// 中文：各具体会话仓库共用的包内类型化接口边界。
 /** Package-internal typed boundary shared by concrete session repositories. */
 export class StorageBackedSession<TMetadata extends SessionMetadata = SessionMetadata> implements Session<TMetadata> {
 	readonly metadata: TMetadata;

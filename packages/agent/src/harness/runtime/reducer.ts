@@ -18,6 +18,7 @@ function matchingOperation(
 	return snapshot.operation?.id === operationId ? snapshot.operation : undefined;
 }
 
+// 中文：将一个 Harness 事件应用到可变的 lane 快照。导航完成后需要重新获取快照。
 /** Apply one harness event to a mutable lane snapshot. Navigation completion requires a fresh snapshot. */
 export function reduceLaneSnapshot(
 	snapshot: LaneSnapshot,

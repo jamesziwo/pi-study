@@ -77,6 +77,7 @@ export function serializeJsonlTransaction(writes: readonly CommittedWrite[]): st
 	return JSON.stringify(writes.length === 1 ? writes[0] : writes);
 }
 
+// 中文：仅在回调成功后发布；回调必须等待每次追加完成后才能返回。
 /** Publish only after the callback succeeds; it must await each append before returning. */
 export async function publishFileAtomically(
 	fileSystem: FileSystem,
@@ -103,6 +104,7 @@ export async function publishFileAtomically(
 	}
 }
 
+// 中文：通过共用的原子发布器流式写入头部和完整事务。
 /** Stream a header and complete transactions through the shared atomic publisher. */
 export async function publishJsonl(
 	fileSystem: FileSystem,

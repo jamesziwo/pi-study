@@ -1,3 +1,4 @@
+// 中文：将单个 Session 的完整读取、修改、写入任务串行化。
 /** Serializes complete read-modify-write jobs for one Session. */
 export class MutationLine {
 	private tail: Promise<void> = Promise.resolve();

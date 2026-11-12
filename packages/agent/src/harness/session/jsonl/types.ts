@@ -13,6 +13,7 @@ export interface JsonlStorageHeader {
 	cwd: string;
 	parentSessionId?: string;
 	legacyParentSessionPath?: string;
+	// 中文：快照重写时写入的序号高水位。
 	/** Sequence high-water mark written by snapshot rewrites. */
 	nextSeq?: number;
 }
@@ -26,6 +27,7 @@ export interface JsonlStorageOptions {
 export interface JsonlSessionMetadata extends SessionMetadata {
 	cwd: string;
 	path: string;
+	// 中文：文件系统修改时间，以 Unix 纪元以来的毫秒数表示。
 	/** Filesystem modification time as milliseconds since Unix epoch. */
 	modifiedAt: number;
 }

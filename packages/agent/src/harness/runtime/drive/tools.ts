@@ -652,6 +652,7 @@ async function runParallel<TContext extends object | undefined>(
 	return { kind: "continue" };
 }
 
+// 中文：对一个完整的持久化工具批次进行执行、恢复、暂存，并按原始调用顺序整理结果。
 /** Execute, recover, stage, and source-order one complete durable tool batch. */
 export async function runTools<TContext extends object | undefined>(
 	lane: Lane<TContext>,

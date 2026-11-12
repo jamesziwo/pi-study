@@ -52,6 +52,7 @@ function reachesForkBoundary(writes: readonly CommittedWrite[], stopBeforeSeq: n
 	return false;
 }
 
+// 中文：读取头部之后的完整事务，绝不在序号边界处拆分事务。
 /** Read complete transactions after the header, never splitting a transaction at the sequence boundary. */
 async function* readJsonlForkTransactions(
 	reader: TextLineReader,
@@ -157,6 +158,9 @@ class JsonlForkIndex {
 	}
 }
 
+// 中文：校验源 lane 并返回分叉计划。branch 范围通过 index.selectEntry() 更新 JsonlForkIndex 中的选中条目：先校验
+// entryId 并应用 "at"/"before"，再选择目标 tip 及其祖先。计划记录分支名称和目标 tip，复制阶段通过索引筛选条目和标签。tree 范围不改变索引
+// 的选中集合，因为复制阶段保留全部条目。两种格式使用相同的索引元数据；此函数不执行文件 I/O。
 /**
  * Validate the source lanes and return the fork plan.
  *
@@ -204,12 +208,17 @@ function projectJsonlForkWrite(
 	}
 }
 
+// 中文：已准备好的分叉输入：格式 4 的文件元数据，或已经规范化的旧版来源。
 /** Prepared fork input: format-4 file metadata or an already-normalized legacy source. */
 export type JsonlForkInput =
 	| { kind: "open"; metadata: JsonlForkSourceMetadata; nextSeq: number }
 	| { kind: "closed"; metadata: JsonlForkSourceMetadata }
 	| { kind: "legacy-v3"; normalized: LegacyV3Source };
 
+// 中文：建立索引，用于选择分支祖先链并识别当前标量或列表写入。保留条目的父链接、当前记录序号及 lane 清单，不保留条目载荷。返回索引和源的 nextSeq 高水位；此处
+// 不写目标。V3：LegacyV3Source 已扫描文件并分配规范化 id 和序号，直接复制其内存中的条目结构及派生值，不重新打开文件或调用 writes()，避免在选择
+// 分叉内容前无谓解析载荷和重建压缩尾部。V4：打开源文件，将完整事务归并到索引；源已打开时在捕获的提交队列序号边界停止，源已关闭时扫描至 EOF 或不完整的最后一行，根据头
+// 部及最高完整写入序号推导 nextSeq。后续复制阶段对两种格式都会重新打开源文件，仅发出选中的写入。
 /**
  * Build the index used to select branch ancestry and identify current scalar/list writes.
  * Retains entry parent links, current-row sequences, and lane inventory, not entry payloads.
@@ -256,6 +265,7 @@ async function indexForkInput(
 	}
 }
 
+// 中文：逐项产出源写入；最终投影与过滤由调用方负责。
 /** Yield source writes; the caller owns final projection and filtering. */
 async function* streamForkWrites(
 	input: JsonlForkInput,
@@ -265,6 +275,8 @@ async function* streamForkWrites(
 	context: Context,
 ): AsyncIterable<CommittedWrite> {
 	if (input.kind === "legacy-v3") {
+		// 中文：V3 提前过滤，避免重复读取消息和重建未选中的压缩尾部。V4 已保存完整载荷，因此在下面流式读取全部已捕获的写入。两种格式最终仍经过
+		// projectJsonlForkWrite() 过滤和转换。
 		// V3 filters early to avoid rereading messages and reconstructing unselected compaction tails.
 		// V4 already stores complete payloads, so it streams all captured writes below.
 		// Both formats still pass through projectJsonlForkWrite() for final filtering and transformation.
@@ -285,6 +297,8 @@ async function* streamForkWrites(
 	}
 }
 
+// 中文：为源建立索引，校验请求的分叉，将选中的条目及当前状态流式写入以原子方式发布的格式 4 目标，且不修改源。保留所复制的序号及源 nextSeq，排除 usage 和未
+// 结束操作状态。各次遍历之间不得替换或编辑源文件；后续仅追加的写入由捕获的序号边界或旧版记录数排除。不会打开目标 Session。
 /**
  * Index the source, validate the requested fork, and stream selected entries and current state
  * into an atomically published format-4 destination without modifying the source.

@@ -25,6 +25,7 @@ import { Lane } from "./lane.ts";
 import { readLaneStorage, restoreLaneState, restoreSession } from "./restore.ts";
 import { type Config, type LaneState, SliceNotImplemented } from "./types.ts";
 
+// 中文：AgentHarness 的运行时实现。Harness 管理 lane，但它本身不是 lane。
 /** Runtime implementation of AgentHarness. The harness manages lanes but is not itself a lane. */
 export class Harness<TContext extends object | undefined> implements AgentHarness<TContext> {
 	readonly session: Session;
@@ -371,6 +372,7 @@ export class Harness<TContext extends object | undefined> implements AgentHarnes
 	}
 }
 
+// 中文：连接运行时，不启动提供方、工具、钩子或计时器副作用。
 /** Attach runtime without starting provider, tool, hook, or timer effects. */
 export async function createAgentHarness<TContext extends object | undefined = object | undefined>(
 	options: AgentHarnessOptions<TContext>,

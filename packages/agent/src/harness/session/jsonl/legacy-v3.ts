@@ -117,6 +117,7 @@ type LegacyV3Entry = RetainedLegacyV3Entry | DiscardedLegacyV3Entry;
 interface LegacyV3IndexBase {
 	id: string;
 	parentId: string | null;
+	// 中文：本节点的新 id；节点被丢弃时使用父节点映射后的 id。
 	/** This node's new ID, or its parent's mapped ID when the node is discarded. */
 	mappedId: string | null;
 }
@@ -127,6 +128,7 @@ type RetainedLegacyV3IndexEntry = LegacyV3IndexBase & { mappedId: string; seq: n
 		| { type: "compaction"; firstKeptEntryId: string }
 	);
 
+// 中文：保留结构、标签及配置变化，不保留对话载荷。
 /** Keep structure, labels, and configuration changes, but not conversation payloads. */
 type LegacyV3IndexEntry =
 	| RetainedLegacyV3IndexEntry
@@ -227,6 +229,7 @@ function importedCustomMessage(entry: LegacyV3CustomMessageEntry): AgentMessage 
 		display: entry.display,
 		timestamp: Date.parse(entry.timestamp),
 	};
+	// 中文：coding-agent 对 CustomAgentMessages 的声明合并在本包中不可见。
 	// The coding-agent CustomAgentMessages declaration merge is not visible in this package.
 	return message as unknown as AgentMessage;
 }
@@ -243,12 +246,14 @@ function isRetainedEntry<T extends LegacyV3Entry | LegacyV3IndexEntry>(
 	);
 }
 
+// 中文：将旧版 id 解析为导入后的 id。被丢弃记录映射为其最近保留祖先新生成的 id。
 /**
  * Resolve a legacy ID to its imported ID. Discarded records resolve to the minted ID of their
  * nearest retained ancestor.
  */
 type ResolveLegacyId = (legacyId: string | null) => string | null;
 
+// 中文：父节点映射已在扫描期间归并，后续引用只需查询。
 /** Parent mappings are already folded during the scan; later references need only a lookup. */
 function createLegacyIdResolver(entries: ReadonlyMap<string, LegacyV3IndexEntry>): ResolveLegacyId {
 	return (legacyId) => {
@@ -260,6 +265,7 @@ function createLegacyIdResolver(entries: ReadonlyMap<string, LegacyV3IndexEntry>
 }
 
 function resolveBranchSummaryFromId(resolveLegacyId: ResolveLegacyId, legacyFromId: string): string | null {
+	// 中文：旧版 branchWithSummary() 将根来源编码为 "root" 哨兵值，而非 null。
 	// Legacy branchWithSummary() encoded a root source as the "root" sentinel instead of null.
 	return legacyFromId === "root" ? null : resolveLegacyId(legacyFromId);
 }
@@ -290,6 +296,7 @@ function projectContextMessage(entry: LegacyV3Entry, resolveLegacyId: ResolveLeg
 	}
 }
 
+// 中文：沿物理祖先链遍历，包括被丢弃节点及精确的保留边界。
 /** Walk physical ancestry, including discarded nodes and the exact kept boundary. */
 function* retainedTailStructure(
 	compaction: LegacyV3CompactionIndexEntry,
@@ -297,6 +304,7 @@ function* retainedTailStructure(
 ): Iterable<LegacyV3IndexEntry> {
 	let currentId = compaction.parentId;
 	while (currentId !== null) {
+		// 中文：扫描保证每个父节点都在文件中更早出现，因此不可能形成环。
 		// The scan guarantees that every parent exists earlier in the file, so cycles are impossible.
 		const entry = entriesById.get(currentId)!;
 		yield entry;
@@ -377,6 +385,7 @@ function selectedConfiguration(
 	let currentId = selectedId;
 	while (currentId !== null && remaining.size !== 0) {
 		const entry = entriesById.get(currentId)!;
+		// 中文：即使最近一次变更无效，也使用它；不得回退到更旧的值。
 		// Consume the nearest change even when invalid: older values must not become fallbacks.
 		if (remaining.delete(entry.type)) {
 			switch (entry.type) {
@@ -403,6 +412,7 @@ function indexLegacyV3Entry(
 	seq: number,
 	entries: ReadonlyMap<string, LegacyV3IndexEntry>,
 ): LegacyV3IndexEntry {
+	// 中文：SessionManager 在现有叶节点之后追加，并按父节点在前的顺序写出提取的分支。
 	// SessionManager appends after an existing leaf and writes extracted branches in parent order.
 	const mappedParentId = entry.parentId === null ? null : entries.get(entry.parentId)?.mappedId;
 	if (mappedParentId === undefined) {
@@ -429,6 +439,7 @@ function indexLegacyV3Entry(
 				return { ...structure, type: entry.type };
 		}
 	}
+	// 中文：null 表示根，不是可以重新分配 id 的保留节点身份。
 	// Null denotes the root, not a retained node identity that can be reminted.
 	if (entry.id === null) throw new Error("Legacy v3 entry reference has no retained ancestor: null");
 	const retained = {
@@ -489,9 +500,11 @@ function normalizeLegacyV3Values(inventory: LegacyV3Inventory): CommittedValueSe
 	let nextSeq = inventory.nextSeq;
 	const values: CommittedValueSetWrite[] = [];
 
+	// 中文：会话名称。
 	// session name
 	if (name) values.push({ ...setValue(sessionName, name), seq: nextSeq++ });
 
+	// 中文：标签。
 	// labels
 	const labels = new Map<string, string>();
 	for (const entry of entries.values()) {
@@ -505,9 +518,11 @@ function normalizeLegacyV3Values(inventory: LegacyV3Inventory): CommittedValueSe
 		values.push({ ...setValue(entryLabel(targetId), label), seq: nextSeq++ });
 	}
 
+	// 中文：分支 tip。
 	// branch tip
 	values.push({ ...setValue(branchTip("main"), resolveLegacyId(finalId)), seq: nextSeq++ });
 
+	// 中文：配置。
 	// configuration
 	const configuration = selectedConfiguration(entries, finalId);
 	if (configuration !== undefined) {
@@ -520,6 +535,8 @@ function normalizeLegacyV3Values(inventory: LegacyV3Inventory): CommittedValueSe
 	return values;
 }
 
+// 中文：将已捕获的旧版文件暴露为可重复读取的逻辑 v4 写入。每次遍历都重新打开路径，调用方不得在遍历之间替换或编辑源。结构索引、标签和配置元数据，以及派生的当前值，会保留
+// 到后续扫描。
 /**
  * A captured legacy file exposed as repeatable logical v4 writes.
  * Each pass reopens the path; callers must not replace or edit the source between passes.
@@ -554,6 +571,8 @@ export class LegacyV3Source {
 		this.nextSeq = nextSeq;
 	}
 
+	// 中文：不修改文件地扫描完整 v3 记录，忽略未正常终止的最后一行。构建父节点映射，分配对本源实例稳定的 id，推导当前值及导入用量。仅保留元数据，不保留对话载荷或已打开的
+	// 读取器。writes() 重新打开路径，以物化已捕获记录并解析其载荷相关引用。
 	/**
 	 * Scan complete v3 records without modifying the file, ignoring an unterminated final line.
 	 * Build parent mappings, assign IDs stable for this source instance, and derive current values
@@ -607,6 +626,7 @@ export class LegacyV3Source {
 			const compactionIsSelected = isEntrySelected === undefined || isEntrySelected(entry.mappedId);
 			if (!compactionIsSelected) continue;
 
+			// 中文：从压缩条目的父节点遍历到 firstKeptEntryId，包含该边界条目。
 			// Walk from the compaction's parent through firstKeptEntryId, inclusive.
 			for (const tailEntry of retainedTailStructure(entry, this.entries)) {
 				const canProduceContextMessage = isRetainedEntry(tailEntry) && tailEntry.type !== "custom";
@@ -616,6 +636,7 @@ export class LegacyV3Source {
 		return requiredIds;
 	}
 
+	// 中文：流式产出规范化后的 v4 条目，可按重新生成的 id 筛选，随后产出派生的当前值。每次遍历独占自己的读取器和消息缓存，仅共享已捕获的 id 和元数据。
 	/**
 	 * Stream normalized v4 entries, optionally filtered by reminted ID, followed by derived current values.
 	 * Each pass owns its reader and message cache, sharing only the captured IDs and metadata.
@@ -625,6 +646,7 @@ export class LegacyV3Source {
 		isEntrySelected?: (id: string) => boolean,
 	): AsyncIterable<CommittedEntryWrite | CommittedValueSetWrite> {
 		const requiredTailMessageIds = this.collectRequiredTailMessageIds(isEntrySelected);
+		// 中文：在整个本次遍历中保留所需上下文消息；尾部重建可能再次访问旧分支或共享分支。
 		// Keep needed context messages for this entire pass; tails may revisit old or shared branches.
 		const tailMessagesByLegacyId = new Map<string, AgentMessage>();
 		for await (const { entry, indexed } of this.readCapturedEntries(context)) {
@@ -647,6 +669,7 @@ export class LegacyV3Source {
 		yield* this.values;
 	}
 
+	// 中文：仅重放已捕获的前缀，并在物化前校验其物理记录身份。
 	/** Replay only the captured prefix and verify its physical identities before materialization. */
 	private async *readCapturedEntries(
 		context: Context,

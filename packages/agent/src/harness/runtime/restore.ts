@@ -88,6 +88,7 @@ export async function readLaneStorage(
 	return classifyLaneStorage(lane, { tip, configuration, laneState });
 }
 
+// 中文：通过一次一致的 Session 读取，恢复所有配置完整的 AgentLane。
 /** Restore every complete configured AgentLane in one coherent Session read. */
 export function restoreSession(session: Session, context: Context): Promise<Map<string, LaneState>> {
 	return session.mutate(async (reader) => {
@@ -114,6 +115,7 @@ export function restoreSession(session: Session, context: Context): Promise<Map<
 	}, context);
 }
 
+// 中文：恢复一个已配置 lane，不启动工作，也不解释并推进其状态。
 /** Restore one configured lane without starting work or interpreting its state. */
 export function restoreLane(session: Session, lane: string, context: Context): Promise<LaneState> {
 	return session.mutate(async (reader) => {

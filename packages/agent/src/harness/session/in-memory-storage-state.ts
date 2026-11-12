@@ -69,6 +69,8 @@ function compareKeys(left: string, right: string): number {
 	return leftCodePoints.length - rightCodePoints.length;
 }
 
+// 中文：供 MemoryStorage 和 JsonlStorage 使用的完整物化会话状态。此实现有意不适用于数据库后端，以及可能无法全部装入内存的长期会话。那些后端应查
+// 询带索引的持久化状态，并在每次提交事务内更新持久化汇总值。
 /**
  * Complete materialized session state for MemoryStorage and JsonlStorage.
  *
@@ -107,6 +109,7 @@ export class InMemoryStorageState {
 		});
 	}
 
+	// 中文：应用已通过 validateCommitted() 检查的写入，并返回应用后的累计统计。
 	/** Apply writes already accepted by validateCommitted() and return the post-apply totals. */
 	applyValidated(writes: readonly CommittedWrite[]): SessionStats {
 		for (const write of writes) {

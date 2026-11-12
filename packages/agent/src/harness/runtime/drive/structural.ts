@@ -604,6 +604,7 @@ async function publishStructuralReady<TContext extends object | undefined>(
 	return published.kind === "cancel_requested" ? { kind: "continue" } : published.value;
 }
 
+// 中文：处理一份持久化的结构调整准备数据，并执行决策钩子。
 /** Consume one durable structural preparation and decision hook. */
 export async function runStructuralDecision<TContext extends object | undefined>(
 	lane: Lane<TContext>,
@@ -1006,6 +1007,7 @@ async function publishAttemptResult<TContext extends object | undefined>(
 	return publishStructuralOutcome(lane, drive, effect, { kind: "failed", error: result.error });
 }
 
+// 中文：执行一次已就绪的结构调整摘要生成尝试。
 /** Execute one ready structural generation attempt. */
 export async function runStructuralGeneration<TContext extends object | undefined>(
 	lane: Lane<TContext>,
@@ -1028,6 +1030,7 @@ export async function runStructuralGeneration<TContext extends object | undefine
 	return publishAttemptResult(lane, drive, intent.value, result);
 }
 
+// 中文：处理一次结构调整重试等待，不启动提供方副作用。
 /** Consume one structural retry wait without starting a provider effect. */
 export async function runStructuralRetryWait<TContext extends object | undefined>(
 	lane: Lane<TContext>,
@@ -1073,6 +1076,7 @@ export async function runStructuralRetryWait<TContext extends object | undefined
 	return published.kind === "cancel_requested" ? { kind: "continue" } : published.value;
 }
 
+// 中文：将失去执行者的结构调整尝试转换为新编号的尝试，或以失败终止。
 /** Convert an orphaned structural attempt into a fresh numbered attempt or terminal failure. */
 export async function recoverStructuralGeneration<TContext extends object | undefined>(
 	lane: Lane<TContext>,
@@ -1114,6 +1118,7 @@ export async function recoverStructuralGeneration<TContext extends object | unde
 	return published.kind === "cancel_requested" ? { kind: "continue" } : published.value;
 }
 
+// 中文：仅在没有更新的压缩记录已覆盖本次触发点时，准备阈值触发的压缩。
 /** Prepare threshold compaction only when no newer compaction already guards this trigger. */
 export async function prepareCompactionThreshold<TContext extends object | undefined>(
 	lane: Lane<TContext>,
@@ -1151,6 +1156,7 @@ export async function prepareCompactionThreshold<TContext extends object | undef
 	};
 }
 
+// 中文：在响应结果提交事务之前，准备一次上下文溢出压缩。
 /** Prepare one overflow compaction before the response settlement transaction. */
 export async function prepareOverflowCompaction<TContext extends object | undefined>(
 	lane: Lane<TContext>,
@@ -1169,6 +1175,7 @@ export async function prepareOverflowCompaction<TContext extends object | undefi
 	};
 }
 
+// 中文：原子完成不生成摘要的导航位置迁移，并结束该操作。
 /** Atomically move an unsummarized navigation and finish its operation. */
 export function commitNavigation<TContext extends object | undefined>(
 	lane: Lane<TContext>,

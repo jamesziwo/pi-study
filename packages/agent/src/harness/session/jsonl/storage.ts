@@ -36,6 +36,7 @@ function splitCompleteLines(content: string): { lines: string[]; torn: boolean }
 
 type JsonlBacking = { kind: "v4" } | { kind: "v3"; source: LegacyV3Source };
 
+// 中文：由注入的文件系统能力支持的 JSONL 存储。
 /** JSONL storage backed by an injected filesystem capability. */
 export class JsonlStorage implements Storage {
 	private readonly fileSystem: FileSystem;
@@ -150,6 +151,7 @@ export class JsonlStorage implements Storage {
 		return { ...prepared.result, stats: this.withImportedUsage(stats) };
 	}
 
+	// 中文：原子升级旧版 v3 存储，并将调用方的首次写入保留为 v4 事务。
 	/** Atomically upgrade legacy v3 backing and preserve the first caller write as a v4 transaction. */
 	private async upgradeLegacyV3ToV4(
 		source: LegacyV3Source,
@@ -179,6 +181,7 @@ export class JsonlStorage implements Storage {
 
 		const stats = this.storageState.applyValidated(prepared.writes);
 		this.backing = { kind: "v4" };
+		// 中文：第一个序号属于内部用量调整，仅返回调用方写入对应的序号。
 		// The first sequence belongs to the internal usage adjustment; return only caller-write sequences.
 		return {
 			...prepared.result,
@@ -245,6 +248,7 @@ export class JsonlStorage implements Storage {
 		return this.backing.kind === "v3";
 	}
 
+	// 中文：捕获源的后续提交将使用的第一个序号。
 	/** Capture the first sequence a later source commit would use. */
 	captureForkNextSeq(_context: Context): Promise<number> {
 		if (this.state !== "open") return Promise.reject(new Error("JsonlStorage is closed"));

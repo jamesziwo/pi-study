@@ -217,6 +217,7 @@ function capturedModel(operation: Operation): ModelIdentity | undefined {
 	}
 }
 
+// 中文：一个已配置 lane 的运行时实现。
 /** Runtime implementation of one configured lane. */
 export class Lane<TContext extends object | undefined> implements AgentLane {
 	readonly name: string;
@@ -230,8 +231,10 @@ export class Lane<TContext extends object | undefined> implements AgentLane {
 	private stateChange: Promise<void>;
 	private resolveStateChange: () => void;
 	private idleOwner: Promise<void> | undefined;
+	// 中文：包内的 drive 所有者。仅因确定性过程测试需要直接安装指定所有者，才公开此字段。
 	/** Package-internal drive owner. Public only because deterministic procedure tests install exact owners directly. */
 	activeDrive: Drive | undefined;
+	// 中文：此 Harness 持有 Session 期间，作为权威来源的实时控制状态投影。
 	/** Authoritative live control projection while this harness owns the Session. */
 	state: LaneState;
 	closedError: Error | undefined;
@@ -287,6 +290,12 @@ export class Lane<TContext extends object | undefined> implements AgentLane {
 		});
 	}
 
+	// 中文：在本 lane 的串行修改队列上执行一个无副作用命令。由其持有的 `state` 是权威状态；规划器接收该状态及用于有界载荷查询的只读 reader。已提交值和持有
+	// 状态都是不可变快照，必须通过替换更新，绝不能原地修改。与状态无关的输入校验放在 `command()` 前，所有依赖状态的决策放在规划器内部。规划器只能选择一种结果：
+	// `commit` 提交一次，发布 `next`，再根据存储分配的 `CommitResult` 元数据同步构造调用方结果；`return` 不提交而直接返回，使用封装避免
+	// 持有 Session 修改队列时等待 Promise 值；`reject` 不提交，在修改及故障处理边界之外将其作为预期调用方错误拒绝。规划、提交或结果构造失败会在释放
+	// Session 队列之前使 Harness 进入故障状态。关闭和故障准入检查在排队前及回调开始时各执行一次：先关闭则拒绝；关闭前已获准的回调可完成提交、发布内存状态并成功
+	// 返回，无需再次检查是否打开。此处绝不能调用提供方、工具、钩子、计时器、事件处理器或等待任务完成；这些操作应在 `command()` 返回后执行。
 	/**
 	 * Run one effect-free command on this lane's serialized mutation line. Owned `state` is authoritative; the
 	 * planner receives that state plus a read-only reader for bounded payload lookups. Committed values and owned
@@ -380,6 +389,8 @@ export class Lane<TContext extends object | undefined> implements AgentLane {
 		return outcome.result;
 	}
 
+	// 中文：即使已请求取消，也针对当前操作执行命令。用于处理已获准副作用的结果、结束操作或更新并发子状态。传入的能力将规划器的状态类型收窄；Drive 的续执行逻辑仍是唯一的顶
+	// 层状态写入者。
 	/**
 	 * Run a command against the current operation even after cancellation is requested. Use this to settle admitted
 	 * effects, finish the operation, or update concurrent child state. The capability narrows the planner's state type;
@@ -444,6 +455,8 @@ export class Lane<TContext extends object | undefined> implements AgentLane {
 		}, context);
 	}
 
+	// 中文：仅在持久化控制状态为 running 时执行普通操作命令。启动新钩子、副作用或继续推进前使用此方法。一旦请求取消，直接返回 `cancel_requested`，不
+	// 调用规划器。
 	/**
 	 * Run an ordinary operation command only while durable control is running. Use this before starting new hooks,
 	 * effects, or forward progress. Returns `cancel_requested` without invoking the planner once cancellation is requested.
@@ -1002,6 +1015,7 @@ export class Lane<TContext extends object | undefined> implements AgentLane {
 		}
 	}
 
+	// 中文：包内私有的持久化取消基础操作。在 M8 之前，对外公开仍受准入控制。
 	/** Package-private durable cancellation primitive. Public exposure remains guarded until M8. */
 	async requestOperationAbort(operationId: string, context: Context): Promise<AbortRequestResult> {
 		if (this.closedError instanceof HarnessClosed) {
@@ -1089,6 +1103,8 @@ export class Lane<TContext extends object | undefined> implements AgentLane {
 					],
 				};
 			}, context);
+			// 中文：新的 Drive 可能看到已持久化的取消标记，因此重复请求路径也要触发其准入门。操作不匹配时，可能仅让旧 Drive 的准入门保持 aborting，但仍会解除它对
+			// 取消完成的等待。
 			// A fresh Drive may observe an already-durable marker; pull its gate on the repeat path too. A mismatch
 			// can leave only the stale Drive's admission gate in aborting state; its cancellation wait is still released.
 			settleGate(result.ok && result.value.newlyRequested === false);
