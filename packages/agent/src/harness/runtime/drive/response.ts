@@ -102,6 +102,7 @@ type ConfigurationFailureState = Extract<
 	{ at: "assistant.ready" | "assistant.retry_wait" | "deferred.suspended" | "deferred.effect_pending" }
 >;
 
+// 中文：在预留响应 id 之前，发布不可重试的请求配置失败。
 /** Publish a non-retryable request-configuration failure before reserving response ids. */
 export async function publishConfigurationFailure<
 	TContext extends object | undefined,
@@ -178,6 +179,7 @@ function deferredHandleIsValid(message: SettledAssistantMessage, generation: Ass
 	);
 }
 
+// 中文：对一次助手生成或延迟轮询的响应分类，并原子地完成其结果处理。
 /** Classify and atomically settle one assistant-generation or deferred-poll response. */
 export async function publishResponse<TContext extends object | undefined>(
 	lane: Lane<TContext>,
