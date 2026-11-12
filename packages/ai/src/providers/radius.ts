@@ -16,6 +16,7 @@ export interface RadiusProviderOptions {
 	gateway?: string;
 }
 
+// 中文：Radius 网关提供方，具有持久化且动态刷新的目录。
 /** Radius gateway provider with a persisted, dynamically refreshed catalog. */
 export function radiusProvider(options: RadiusProviderOptions = {}): Provider<"pi-messages"> {
 	const id = options.id ?? "radius";
@@ -47,6 +48,7 @@ export function radiusProvider(options: RadiusProviderOptions = {}): Provider<"p
 				}
 			}
 
+			// 中文：导入采用 ModelsStore 之前的 Radius 实现所缓存的目录。
 			// Import catalogs cached by the pre-ModelsStore Radius implementation.
 			if (!stored && context.credential?.type === "oauth") {
 				const legacy = getRadiusModels(id, context.credential);

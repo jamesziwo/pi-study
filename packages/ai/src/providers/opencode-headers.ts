@@ -15,6 +15,7 @@ function withSessionHeader<TOptions extends StreamOptions>(options: TOptions | u
 	};
 }
 
+// 中文：在 API 分派前添加 OpenCode 要求的逐对话路由请求头。
 /** Adds OpenCode's required per-conversation routing header before API dispatch. */
 export function withOpenCodeSessionHeader(streams: ProviderStreams): ProviderStreams {
 	return {

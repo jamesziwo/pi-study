@@ -7,6 +7,7 @@ import { openRouterOAuth } from "./auth/oauth/openrouter.ts";
 import { createRadiusOAuth } from "./auth/oauth/radius.ts";
 import { xaiOAuth } from "./auth/oauth/xai.ts";
 
+// 中文：注册静态嵌入独立 Bun 二进制程序的 OAuth 流程。
 /** Register OAuth flows statically embedded in the standalone Bun binary. */
 export function registerBunOAuthFlows(): void {
 	registerBundledOAuthFlowLoaders({

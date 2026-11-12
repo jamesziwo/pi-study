@@ -13,6 +13,7 @@ async function resolveValue(
 	credential: ApiKeyCredential | undefined,
 	signal: AbortSignal,
 ): Promise<string | undefined> {
+	// 中文：逐字段合并：优先凭据中的值，否则回退到环境变量。仅包含 API key 的凭据仍必须能从环境获取账户或网关 ID。
 	// Per-field merge: prefer the credential value, fall back to ambient env.
 	// A credential carrying only the API key must still pick up the account /
 	// gateway id from the environment.

@@ -1,6 +1,9 @@
 export type { Static, TSchema } from "typebox";
 export { Type } from "typebox";
 
+// 中文：仅包含核心且无副作用：不包含生成目录、提供方工厂、API 注册表、OAuth 实现或兼容层。提供方工厂位于
+// @earendil-works/pi-ai/providers/*，API 实现位于 @earendil-works/pi-ai/api/*，旧全局 API 位于
+// @earendil-works/pi-ai/compat。
 // Core only, side-effect free: no generated catalogs, no provider factories,
 // no api-registry, no OAuth implementations, no compat. Provider factories
 // live under "@earendil-works/pi-ai/providers/*", API implementations under

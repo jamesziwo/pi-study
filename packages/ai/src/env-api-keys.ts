@@ -1,3 +1,4 @@
+// 中文：切勿改为顶层导入，否则会破坏浏览器或 Vite 构建。
 // NEVER convert to top-level imports - breaks browser/Vite builds
 let _existsSync: typeof import("node:fs").existsSync | null = null;
 let _homedir: typeof import("node:os").homedir | null = null;
@@ -10,6 +11,7 @@ const NODE_FS_SPECIFIER = "node:" + "fs";
 const NODE_OS_SPECIFIER = "node:" + "os";
 const NODE_PATH_SPECIFIER = "node:" + "path";
 
+// 中文：仅在 Node.js/Bun 环境中提前加载。
 // Eagerly load in Node.js/Bun environment only
 if (typeof process !== "undefined" && (process.versions?.node || process.versions?.bun)) {
 	dynamicImport(NODE_FS_SPECIFIER).then((m) => {
@@ -39,23 +41,27 @@ function hasVertexAdcCredentials(env?: ProviderEnv): boolean {
 	}
 
 	if (cachedVertexAdcCredentialsExists === null) {
+		// 中文：Node 模块尚未加载时（启动时的异步导入竞争），返回 false 但不缓存，以便模块就绪后下次调用重试。仅在 fs 永不可用的浏览器环境中永久缓存 false。
 		// If node modules haven't loaded yet (async import race at startup),
 		// return false WITHOUT caching so the next call retries once they're ready.
 		// Only cache false permanently in a browser environment where fs is never available.
 		if (!_existsSync || !_homedir || !_join) {
 			const isNode = typeof process !== "undefined" && (process.versions?.node || process.versions?.bun);
 			if (!isNode) {
+				// 中文：已确定处于浏览器环境，可以永久缓存 false。
 				// Definitively in a browser — safe to cache false permanently
 				cachedVertexAdcCredentialsExists = false;
 			}
 			return false;
 		}
 
+		// 中文：首先检查标准的 GOOGLE_APPLICATION_CREDENTIALS 环境变量。
 		// Check GOOGLE_APPLICATION_CREDENTIALS env var first (standard way)
 		const gacPath = getProviderEnvValue("GOOGLE_APPLICATION_CREDENTIALS", env);
 		if (gacPath) {
 			cachedVertexAdcCredentialsExists = _existsSync(gacPath);
 		} else {
+			// 中文：回退到默认 ADC 路径，延迟求值。
 			// Fall back to default ADC path (lazy evaluation)
 			cachedVertexAdcCredentialsExists = _existsSync(
 				_join(_homedir(), ".config", "gcloud", "application_default_credentials.json"),
@@ -70,6 +76,8 @@ function getApiKeyEnvVars(provider: string): readonly string[] | undefined {
 		return ["COPILOT_GITHUB_TOKEN"];
 	}
 
+	// 中文：ANTHROPIC_AUTH_TOKEN 参与环境发现和状态检测，但 getEnvApiKey() 跳过它，因为请求必须将其作为 Authorization:
+	// Bearer 传递。
 	// ANTHROPIC_AUTH_TOKEN participates in env discovery/status, but
 	// getEnvApiKey() skips it because requests must pass it as Authorization: Bearer.
 	if (provider === "anthropic") {
@@ -119,6 +127,8 @@ function getApiKeyEnvVars(provider: string): readonly string[] | undefined {
 	return envVar ? [envVar] : undefined;
 }
 
+// 中文：查找已配置且能为提供方提供 API key 的环境变量。仅报告实际的 API key 变量，明确排除 AWS profile、AWS IAM 凭据及 Google
+// 应用默认凭据等环境凭据来源。
 /**
  * Find configured environment variables that can provide an API key for a provider.
  *
@@ -136,6 +146,7 @@ export function findEnvKeys(provider: string, env?: ProviderEnv): string[] | und
 	return found.length > 0 ? found : undefined;
 }
 
+// 中文：从 OPENAI_API_KEY 等已知环境变量获取提供方 API key。不会为要求 OAuth token 的提供方返回 API key。
 /**
  * Get API key for provider from known environment variables, e.g. OPENAI_API_KEY.
  *
@@ -150,6 +161,7 @@ export function getEnvApiKey(provider: string, env?: ProviderEnv): string | unde
 		if (apiKeyEnv) return getProviderEnvValue(apiKeyEnv, env);
 	}
 
+	// 中文：Vertex AI 支持显式 API key 或应用默认凭据，可通过 gcloud auth application-default login 配置认证。
 	// Vertex AI supports either an explicit API key or Application Default Credentials.
 	// Auth is configured via `gcloud auth application-default login`.
 	if (provider === "google-vertex") {
@@ -165,6 +177,10 @@ export function getEnvApiKey(provider: string, env?: ProviderEnv): string | unde
 	}
 
 	if (provider === "amazon-bedrock") {
+		// 中文：Amazon Bedrock 支持多种凭据来源：AWS_PROFILE 指向 ~/.aws/credentials 中的具名配置；AWS_ACCESS_KEY_ID
+		//  与 AWS_SECRET_ACCESS_KEY 为标准 IAM 密钥；AWS_BEARER_TOKEN_BEDROCK 为 Bedrock bearer token；
+		// AWS_CONTAINER_CREDENTIALS_RELATIVE_URI 和 AWS_CONTAINER_CREDENTIALS_FULL_URI 分别用于 ECS
+		// 任务角色的相对或完整 URI；AWS_WEB_IDENTITY_TOKEN_FILE 用于 IRSA，即服务账户的 IAM 角色。
 		// Amazon Bedrock supports multiple credential sources:
 		// 1. AWS_PROFILE - named profile from ~/.aws/credentials
 		// 2. AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY - standard IAM keys

@@ -14,6 +14,7 @@ export function resolveCloudflareModel<TApi extends Api>(
 	return baseUrl === model.baseUrl ? model : { ...model, baseUrl };
 }
 
+// 中文：包装 API 实现，使 Cloudflare 账户和网关端点占位符在分派前由已解析的提供方环境值替换。
 /**
  * Wrap an API implementation so Cloudflare account/gateway endpoint
  * placeholders materialize from the resolved provider env before dispatch.

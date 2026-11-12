@@ -5,6 +5,8 @@ import { GOOGLE_VERTEX_MODELS } from "./google-vertex.models.ts";
 
 const VERTEX_ADC_PATH = "~/.config/gcloud/application_default_credentials.json";
 
+// 中文：Vertex 接受显式 API key 或应用默认凭据，可通过 gcloud auth application-default login 配置。ADC 还要求项目
+// 和位置环境变量，由实现自行读取。
 /**
  * Vertex accepts an explicit API key or Application Default Credentials
  * (`gcloud auth application-default login`). ADC additionally requires

@@ -47,6 +47,7 @@ import { zaiCodingCnProvider } from "./zai-coding-cn.ts";
 
 export { radiusProvider };
 
+// 中文：生成目录中存在的提供方。KnownProvider 还包含没有静态目录条目的纯动态提供方，例如 radius。
 /** Providers present in the generated catalog. `KnownProvider` additionally
  * includes purely dynamic providers (e.g. "radius") that have no static
  * catalog entry. */
@@ -57,6 +58,7 @@ type BuiltinModelApi<
 	TModelId extends keyof (typeof MODELS)[TProvider],
 > = (typeof MODELS)[TProvider][TModelId] extends { api: infer TApi } ? (TApi extends Api ? TApi : never) : never;
 
+// 中文：以带类型的方式读取生成的内置目录。
 /** Typed read of the generated built-in catalog. */
 export function getBuiltinModel<TProvider extends BuiltinProvider, TModelId extends keyof (typeof MODELS)[TProvider]>(
 	provider: TProvider,
@@ -70,6 +72,7 @@ export function getBuiltinProviders(): BuiltinProvider[] {
 	return Object.keys(MODELS) as BuiltinProvider[];
 }
 
+// 中文：所有内置提供方目录共用的生成时间戳。
 /** Generation timestamp shared by all built-in provider catalogs. */
 export function getBuiltinModelDataGeneratedAt(): number | undefined {
 	const generatedAt = Date.parse(modelDataManifest.generatedAt);
@@ -85,6 +88,7 @@ export function getBuiltinModels<TProvider extends BuiltinProvider>(
 		: [];
 }
 
+// 中文：全部内置提供方，每次重新构建实例。
 /** All built-in providers, freshly constructed. */
 export function builtinProviders(): Provider[] {
 	return [
@@ -131,6 +135,7 @@ export function builtinProviders(): Provider[] {
 	];
 }
 
+// 中文：注册了全部内置提供方的 Models 集合。
 /** A `Models` collection with every built-in provider registered. */
 export function builtinModels(options?: CreateModelsOptions): MutableModels {
 	const models = createModels(options);
@@ -140,11 +145,13 @@ export function builtinModels(options?: CreateModelsOptions): MutableModels {
 	return models;
 }
 
+// 中文：全部内置图像生成提供方，每次重新构建实例。
 /** All built-in image-generation providers, freshly constructed. */
 export function builtinImagesProviders(): ImagesProvider[] {
 	return [openrouterImagesProvider()];
 }
 
+// 中文：注册了全部内置图像生成提供方的 ImagesModels 集合。
 /** An `ImagesModels` collection with every built-in image-generation provider registered. */
 export function builtinImagesModels(options?: CreateModelsOptions): MutableImagesModels {
 	const models = createImagesModels(options);

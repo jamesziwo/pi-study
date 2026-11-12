@@ -1,3 +1,7 @@
+// 中文：临时兼容入口，保留旧版全局 pi-ai API：按 API 分派且注入环境 API key 的 stream()/complete()、API 注册表、生成目录的
+// getModel/getModels/getProviders 读取、各 API 的延迟流包装器及图像生成。现有应用将导入从 @earendil-works/pi-ai
+// 改为 @earendil-works/pi-ai/compat，其他用法不变；新代码使用 createModels() 和提供方工厂。该模块会随 coding-agent
+//  ModelManager 迁移而删除。
 /**
  * Temporary compatibility entrypoint preserving the old global pi-ai API
  * surface: api-dispatch `stream()`/`complete()` with env API key injection,
@@ -59,12 +63,18 @@ import type {
 	StreamOptions,
 } from "./types.ts";
 
+// 中文：已弃用的静态目录读取。改用 @earendil-works/pi-ai/providers/all 的 getBuiltinModel 或
+// Models.getModel()。
 /** @deprecated Static catalog read. Use `getBuiltinModel` from "@earendil-works/pi-ai/providers/all" or `Models.getModel()`. */
 export const getModel = getBuiltinModel;
 
+// 中文：已弃用的静态目录读取。改用 @earendil-works/pi-ai/providers/all 的 getBuiltinModels 或
+// Models.getModels()。
 /** @deprecated Static catalog read. Use `getBuiltinModels` from "@earendil-works/pi-ai/providers/all" or `Models.getModels()`. */
 export const getModels = getBuiltinModels;
 
+// 中文：已弃用的静态目录读取。改用 @earendil-works/pi-ai/providers/all 的 getBuiltinProviders 或
+// Models.getProviders()。
 /** @deprecated Static catalog read. Use `getBuiltinProviders` from "@earendil-works/pi-ai/providers/all" or `Models.getProviders()`. */
 export const getProviders = getBuiltinProviders;
 
@@ -190,6 +200,7 @@ const BUILTIN_APIS: [Api, ProviderStreams][] = [
 
 const builtinApiProviderInstances = new Map<Api, ReturnType<typeof getApiProvider>>();
 
+// 中文：将内置 API 实现注册到 API 注册表，但不覆盖已有条目：compat 加载前，测试或扩展可能已为内置 API ID 注册了替代实现。
 /**
  * Registers the builtin API implementations into the api-registry without
  * clobbering existing entries: compat may load after a test or extension has
