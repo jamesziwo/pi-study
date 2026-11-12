@@ -38,6 +38,7 @@ async function forwardStream(
 	target.end(hasResult(source) ? await source.result() : undefined);
 }
 
+// 中文：同步返回一个流，同时在其背后执行异步初始化，包括认证解析和模块延迟加载。初始化失败时，以错误事件终止该流。
 /**
  * Returns a stream synchronously while running async setup (auth resolution,
  * lazy module loading) behind it. Setup failures terminate the stream with an
@@ -60,6 +61,7 @@ export function lazyStream(
 	return outer;
 }
 
+// 中文：将动态导入的 API 实现模块包装为 ProviderStreams。模块在首次调用流方法时加载；宿主的导入缓存会避免重复加载。加载失败时，以错误事件终止返回的流。
 /**
  * Wraps a dynamically imported API implementation module as `ProviderStreams`.
  * The module loads on first stream call; the host's import cache deduplicates

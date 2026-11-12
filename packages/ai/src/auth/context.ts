@@ -8,6 +8,7 @@ interface NodeOsModule {
 	homedir(): string;
 }
 
+// 中文：使用变量形式的模块路径，避免浏览器打包器尝试解析 Node 内置模块。
 // Variable specifier so browser bundlers do not try to resolve node builtins.
 const importNodeModule = (specifier: string): Promise<unknown> => import(specifier);
 
@@ -16,6 +17,7 @@ function getProcessEnv(): Record<string, string | undefined> | undefined {
 	return proc?.env;
 }
 
+// 中文：默认认证上下文：从 process.env 获取环境变量（浏览器中为 undefined），通过 node:fs 检查文件是否存在（浏览器中始终为 false）。
 /**
  * Default auth context: env vars from `process.env` (undefined in browsers),
  * file existence via node:fs (always false in browsers).

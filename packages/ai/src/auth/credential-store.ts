@@ -1,6 +1,8 @@
 import { operationSignal, raceWithAbortSignal } from "../utils/abort.ts";
 import type { AuthOperationOptions, Credential, CredentialInfo, CredentialStore } from "./types.ts";
 
+// 中文：默认的内存凭据存储；应用可注入持久化存储。以 Provider.id 为键，每个提供方保存一个凭据，参见 CredentialStore。通过 Promise 链按
+// 提供方串行执行写入。
 /**
  * Default in-memory credential store. Apps inject persistent stores.
  * Keyed by `Provider.id`, one credential per provider; see `CredentialStore`.
@@ -10,6 +12,7 @@ export class InMemoryCredentialStore implements CredentialStore {
 	private credentials = new Map<string, Credential>();
 	private chains = new Map<string, Promise<unknown>>();
 
+	// 中文：按提供方 ID 串行执行任务，当前工作结束前不释放该串行链。
 	/** Serialize tasks per provider id without releasing the chain before active work settles. */
 	private enqueue<T>(providerId: string, task: () => Promise<T>, options?: AuthOperationOptions): Promise<T> {
 		const signal = operationSignal(options?.signal);

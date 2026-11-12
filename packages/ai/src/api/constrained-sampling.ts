@@ -113,6 +113,7 @@ function makeJsonSchemaNodeStrict(schema: unknown): void {
 	schema.additionalProperties = false;
 }
 
+// 中文：将工具 schema 转换为提供方受约束采样所要求的严格子集。
 /** Convert a tool schema to the strict subset expected by provider constrained sampling. */
 export function makeStrictJsonSchema(schema: Tool["parameters"]): Record<string, unknown> {
 	const cloned: unknown = structuredClone(schema);
