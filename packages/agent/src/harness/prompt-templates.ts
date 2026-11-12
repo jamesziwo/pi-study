@@ -4,14 +4,19 @@ import { type ExecutionEnv, type FileInfo, type PromptTemplate, type Result, toE
 
 export type PromptTemplateDiagnosticCode = "file_info_failed" | "list_failed" | "read_failed" | "parse_failed";
 
+// 中文：加载提示词模板时产生的警告。
 /** Warning produced while loading prompt templates. */
 export interface PromptTemplateDiagnostic {
+	// 中文：诊断严重级别，目前仅发出警告。
 	/** Diagnostic severity. Currently only warnings are emitted. */
 	type: "warning";
+	// 中文：稳定的诊断代码。
 	/** Stable diagnostic code. */
 	code: PromptTemplateDiagnosticCode;
+	// 中文：供人阅读的诊断消息。
 	/** Human-readable diagnostic message. */
 	message: string;
+	// 中文：与诊断相关的路径。
 	/** Path associated with the diagnostic. */
 	path: string;
 }
@@ -22,6 +27,8 @@ interface PromptTemplateFrontmatter {
 	[key: string]: unknown;
 }
 
+// 中文：从一个或多个路径加载提示词模板。目录输入只加载其直接 `.md` 子文件，不递归；文件输入加载显式指定的 `.md` 文件。跳过不存在的路径及非 Markdown
+// 文件，读取或解析失败作为诊断返回。
 /**
  * Load prompt templates from one or more paths.
  *
@@ -63,6 +70,7 @@ export async function loadPromptTemplates(
 	return { promptTemplates, diagnostics };
 }
 
+// 中文：从带来源标记的路径加载提示词模板。来源值原样保留，并附加到每个加载的模板及诊断上。agent 包不解释来源值，来源信息的结构由应用自行定义。
 /**
  * Load prompt templates from source-tagged paths.
  *
@@ -222,6 +230,7 @@ function parseFrontmatter<T extends Record<string, unknown>>(
 	}
 }
 
+// 中文：使用简单的 shell 风格单引号和双引号解析参数字符串。
 /** Parse an argument string using simple shell-style single and double quotes. */
 export function parseCommandArgs(argsString: string): string[] {
 	const args: string[] = [];
@@ -248,6 +257,7 @@ export function parseCommandArgs(argsString: string): string[] {
 	return args;
 }
 
+// 中文：使用命令参数替换提示词模板占位符（`$1`、`$@`、`$ARGUMENTS`、`${@:N}`、`${@:N:L}`）。
 /** Substitute prompt template placeholders (`$1`, `$@`, `$ARGUMENTS`, `${@:N}`, `${@:N:L}`) with command arguments. */
 export function substituteArgs(content: string, args: string[]): string {
 	let result = content;
@@ -264,6 +274,7 @@ export function substituteArgs(content: string, args: string[]): string {
 	return result;
 }
 
+// 中文：使用位置参数格式化提示词模板调用。
 /** Format a prompt template invocation with positional arguments. */
 export function formatPromptTemplateInvocation(template: PromptTemplate, args: string[] = []): string {
 	return substituteArgs(template.content, args);

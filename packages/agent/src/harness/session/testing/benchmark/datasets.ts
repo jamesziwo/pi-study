@@ -6,6 +6,7 @@ export interface StorageBenchmarkDataset {
 	readonly tipId: string;
 }
 
+// 中文：包内使用的确定性 ID，由数据集生成和事务生成共用。
 /** Package-internal deterministic id shared by dataset and transaction generation. */
 export function storageBenchmarkEntryId(index: number): string {
 	return `benchmark-entry-${index.toString().padStart(8, "0")}`;
@@ -25,6 +26,7 @@ function createDataset(scale: string, entryCount: number): StorageBenchmarkDatas
 	};
 }
 
+// 中文：所有存储测量共用的确定性合成线性分支。
 /** Deterministic synthetic linear branches shared by all storage measurements. */
 export const STORAGE_BENCHMARK_DATASETS: readonly StorageBenchmarkDataset[] = [
 	createDataset("1k entries", 1_000),

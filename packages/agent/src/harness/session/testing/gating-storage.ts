@@ -2,6 +2,7 @@ import type { Context } from "../../context.ts";
 import type { CommitResult, Write } from "../types.ts";
 import { StorageDecorator } from "./storage-decorator.ts";
 
+// 中文：模拟存储丢失后，每个被拒绝的提交都会抛出此错误。
 /** Thrown for every commit rejected after simulated storage loss. */
 export class CommitDiscarded extends Error {
 	constructor(message: string) {
@@ -22,6 +23,7 @@ interface PendingWaiter {
 	reject(error: Error): void;
 }
 
+// 中文：仅用于测试的存储装饰器，以确定性的方式挂起已接纳的提交。
 /** Test-only storage decorator that deterministically parks admitted commits. */
 export class GatingStorage extends StorageDecorator {
 	private armed = false;
@@ -29,6 +31,7 @@ export class GatingStorage extends StorageDecorator {
 	private readonly queue: ParkedCommit[] = [];
 	private readonly waiters: PendingWaiter[] = [];
 
+	// 中文：显式启用门控之前，测试夹具的初始化会绕过门控。
 	/** Fixture setup bypasses gating until explicitly armed. */
 	arm(): void {
 		this.armed = true;
@@ -38,6 +41,7 @@ export class GatingStorage extends StorageDecorator {
 		return this.queue.length;
 	}
 
+	// 中文：等待至少 count 个提交进入挂起状态。
 	/** Wait until at least `count` commits are parked. */
 	waitPending(count = 1): Promise<void> {
 		if (!Number.isSafeInteger(count) || count < 1) {
@@ -80,6 +84,7 @@ export class GatingStorage extends StorageDecorator {
 		}
 	}
 
+	// 中文：按先进先出顺序释放 count 个提交，并等待每次写入完成。
 	/** Release `count` commits in FIFO order and wait until each write lands. */
 	async next(count = 1): Promise<void> {
 		if (!Number.isSafeInteger(count) || count < 1) {
@@ -94,6 +99,7 @@ export class GatingStorage extends StorageDecorator {
 		}
 	}
 
+	// 中文：丢弃挂起的提交，并永久拒绝此后的所有提交。
 	/** Drop parked commits and permanently reject every later commit. */
 	discard(): void {
 		if (this.discarded) return;

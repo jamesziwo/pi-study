@@ -16,14 +16,19 @@ export type SkillDiagnosticCode =
 	| "parse_failed"
 	| "invalid_metadata";
 
+// 中文：加载技能时产生的警告。
 /** Warning produced while loading skills. */
 export interface SkillDiagnostic {
+	// 中文：诊断严重级别，目前仅发出警告。
 	/** Diagnostic severity. Currently only warnings are emitted. */
 	type: "warning";
+	// 中文：稳定的诊断代码。
 	/** Stable diagnostic code. */
 	code: SkillDiagnosticCode;
+	// 中文：供人阅读的诊断消息。
 	/** Human-readable diagnostic message. */
 	message: string;
+	// 中文：与诊断相关的路径。
 	/** Path associated with the diagnostic. */
 	path: string;
 }
@@ -35,12 +40,15 @@ interface SkillFrontmatter {
 	[key: string]: unknown;
 }
 
+// 中文：格式化技能调用提示词，可选追加用户的额外指令。
 /** Format a skill invocation prompt, optionally appending additional user instructions. */
 export function formatSkillInvocation(skill: Skill, additionalInstructions?: string): string {
 	const skillBlock = `<skill name="${skill.name}" location="${skill.filePath}">\nReferences are relative to ${dirnameEnvPath(skill.filePath)}.\n\n${skill.content}\n</skill>`;
 	return additionalInstructions ? `${skillBlock}\n\n${additionalInstructions}` : skillBlock;
 }
 
+// 中文：从一个或多个目录加载技能。递归遍历目录，加载 `SKILL.md` 文件，以及根目录下直接包含技能 frontmatter 的 `.md` 文件；遵守忽略文件规则，
+// 对无效的声明技能文件返回诊断。不存在的输入目录直接跳过。
 /**
  * Load skills from one or more directories.
  *
@@ -77,6 +85,7 @@ export async function loadSkills(
 	return { skills, diagnostics };
 }
 
+// 中文：从带来源标记的目录加载技能。来源值原样保留，并附加到每个加载的技能及诊断上。agent 包不解释来源值，来源信息的结构由应用自行定义。
 /**
  * Load skills from source-tagged directories.
  *

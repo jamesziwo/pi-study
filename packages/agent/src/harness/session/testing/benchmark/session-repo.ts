@@ -31,6 +31,7 @@ interface SessionRepoForkWriteBenchmarkScenario {
 	run(repo: SessionRepo, source: SessionMetadata, dataset: StorageBenchmarkDataset): Promise<number>;
 }
 
+// 中文：包内使用的确定性会话 ID，由仓库基准测试负载共用。
 /** Package-internal deterministic session id shared by repository benchmark workloads. */
 export function sessionRepoBenchmarkSessionId(index: number): string {
 	return `benchmark-session-${index.toString().padStart(8, "0")}`;
@@ -46,6 +47,7 @@ function createCatalogDataset(scale: string, sessionCount: number): SessionRepoC
 	};
 }
 
+// 中文：仓库测量共用的确定性已关闭会话目录。
 /** Deterministic closed-session catalogs shared by repository measurements. */
 export const SESSION_REPO_CATALOG_BENCHMARK_DATASETS: readonly SessionRepoCatalogBenchmarkDataset[] = [
 	createCatalogDataset("100", 100),
@@ -53,6 +55,7 @@ export const SESSION_REPO_CATALOG_BENCHMARK_DATASETS: readonly SessionRepoCatalo
 	createCatalogDataset("10k", 10_000),
 ];
 
+// 中文：填充一个确定性目录，并按创建顺序返回其持久化元数据。
 /** Seeds one deterministic catalog and returns its durable metadata in creation order. */
 export async function seedSessionRepoCatalogBenchmark(
 	repo: SessionRepo,
@@ -67,6 +70,7 @@ export async function seedSessionRepoCatalogBenchmark(
 	return metadata;
 }
 
+// 中文：共用的目录读取操作。返回数字可确保每次读取的结果都被使用。
 /** Shared catalog reads. Returning a number ensures each result is consumed. */
 export const SESSION_REPO_CATALOG_READ_BENCHMARK_SCENARIOS: readonly SessionRepoCatalogReadBenchmarkScenario[] = [
 	{
@@ -80,6 +84,7 @@ export const SESSION_REPO_CATALOG_READ_BENCHMARK_SCENARIOS: readonly SessionRepo
 	},
 ];
 
+// 中文：共用的目录写入操作。每次调用都会获得一个独立准备且状态等价的仓库。
 /** Shared catalog writes. Every invocation receives an equivalent independently prepared repository. */
 export const SESSION_REPO_CATALOG_WRITE_BENCHMARK_SCENARIOS: readonly SessionRepoCatalogWriteBenchmarkScenario[] = [
 	{
@@ -126,12 +131,14 @@ export const SESSION_REPO_CATALOG_WRITE_BENCHMARK_SCENARIOS: readonly SessionRep
 	},
 ];
 
+// 中文：首次分叉的计时使用规模受限的源数据，因为每轮迭代都拥有一个填充了等价初始数据的仓库。
 /** Initial fork timing uses a bounded source because each iteration owns an equivalent seeded repository. */
 export const SESSION_REPO_FORK_BENCHMARK_DATASETS: readonly StorageBenchmarkDataset[] = [
 	STORAGE_BENCHMARK_DATASETS[0]!,
 	STORAGE_BENCHMARK_DATASETS[1]!,
 ];
 
+// 中文：填充一个确定性的、处于打开状态的源会话，其中包含线性 main 分支。
 /** Seeds one deterministic open source session with a linear main branch. */
 export async function seedSessionRepoForkBenchmark(
 	repo: SessionRepo,
@@ -160,6 +167,7 @@ export async function seedSessionRepoForkBenchmark(
 	return session.metadata;
 }
 
+// 中文：共用的分叉写入操作。每次调用都会获得一个等价的源仓库。
 /** Shared fork writes. Every invocation receives an equivalent source repository. */
 export const SESSION_REPO_FORK_WRITE_BENCHMARK_SCENARIOS: readonly SessionRepoForkWriteBenchmarkScenario[] = [
 	{

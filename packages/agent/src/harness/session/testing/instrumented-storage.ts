@@ -2,6 +2,7 @@ import type { Context } from "../../context.ts";
 import type { CommitResult, Write } from "../types.ts";
 import { StorageDecorator } from "./storage-decorator.ts";
 
+// 中文：仅用于测试的透明 Storage 装饰器，记录提交被接纳的情况。
 /** Test-only transparent Storage decorator that records commit admission. */
 export class InstrumentedStorage extends StorageDecorator {
 	private readonly commitAttempts: Write[][] = [];

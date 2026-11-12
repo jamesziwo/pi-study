@@ -591,6 +591,7 @@ export const HARNESS_TELEMETRY_SCHEMA = {
 	},
 } as const satisfies TelemetrySchemaDefinition;
 
+// 中文：供 agent 管理的 AI 请求及 Harness 遥测共用的类型化 span 定义集合。
 /** Combined typed span vocabulary for agent-owned AI-request and harness telemetry. */
 export const AGENT_TELEMETRY_SCHEMAS = [AI_TELEMETRY_SCHEMA, HARNESS_TELEMETRY_SCHEMA] as const;
 

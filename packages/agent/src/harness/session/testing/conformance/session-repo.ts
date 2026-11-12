@@ -138,8 +138,10 @@ function createCase<TRepo>(
 	};
 }
 
+// 中文：为支持创建、发现、打开和删除操作的仓库创建生命周期测试用例。
 /** Creates lifecycle cases for repositories that support creation, discovery, open, and deletion. */
 export function createSessionRepoLifecycleConformance<TMetadata extends SessionMetadata>(
+	// 中文：只要求本组测试实际使用的方法，以便仅实现部分功能的后端也能独立运行它。
 	// Require only the methods this group exercises so partial backends can run it independently.
 	backendFactory: () => Promise<Pick<SessionRepo<TMetadata>, "create" | "open" | "list" | "delete">>,
 	onClose?: () => void | Promise<void>,
@@ -227,6 +229,7 @@ export function createSessionRepoLifecycleConformance<TMetadata extends SessionM
 	];
 }
 
+// 中文：为持有活动会话句柄的仓库创建独占打开测试用例。
 /** Creates exclusive-open cases for repositories that own active session handles. */
 export function createSessionRepoOwnershipConformance<TMetadata extends SessionMetadata>(
 	backendFactory: () => Promise<Pick<SessionRepo<TMetadata>, "create" | "open">>,
@@ -246,6 +249,7 @@ export function createSessionRepoOwnershipConformance<TMetadata extends SessionM
 	];
 }
 
+// 中文：为支持创建会话的仓库创建消息测试用例。
 /** Creates message cases for repositories that support session creation. */
 export function createSessionRepoMessageConformance<TMetadata extends SessionMetadata>(
 	backendFactory: () => Promise<Pick<SessionRepo<TMetadata>, "create">>,
@@ -299,6 +303,7 @@ export function createSessionRepoMessageConformance<TMetadata extends SessionMet
 	];
 }
 
+// 中文：创建无需仓库并发协调的分叉内容测试用例。
 /** Creates fork-content cases that do not require concurrent repository coordination. */
 export function createSessionRepoForkBehaviorConformance<TMetadata extends SessionMetadata>(
 	backendFactory: () => Promise<Pick<SessionRepo<TMetadata>, "create" | "list" | "fork">>,
@@ -699,11 +704,13 @@ export function createSessionRepoForkBehaviorConformance<TMetadata extends Sessi
 	];
 }
 
+// 中文：在 SQLite 的流式分叉实现尚未完成时，为 Memory 和 JSONL 启用 WP08 测试用例。
 /** WP08 cases enabled for Memory and JSONL while SQLite's streaming fork implementation is pending. */
 export function createSessionRepoStreamingForkConformance<TMetadata extends SessionMetadata>(
 	backendFactory: () => Promise<Pick<SessionRepo<TMetadata>, "create" | "fork">>,
 	onClose?: () => void | Promise<void>,
 ): readonly ConformanceCase[] {
+	// 中文：待 SQLite 支持这些用例后，将其合并到 createSessionRepoForkConformance。
 	// Merge into createSessionRepoForkConformance once SQLite supports these cases.
 	return [
 		...createSessionRepoForkApplicationListConformance(backendFactory, onClose),
@@ -755,6 +762,7 @@ function createSessionRepoForkLaneValidationConformance<TMetadata extends Sessio
 	];
 }
 
+// 中文：创建应用列表的分叉测试用例。
 /** Creates application-list fork cases. */
 function createSessionRepoForkApplicationListConformance<TMetadata extends SessionMetadata>(
 	backendFactory: () => Promise<Pick<SessionRepo<TMetadata>, "create" | "fork">>,
@@ -767,6 +775,7 @@ function createSessionRepoForkApplicationListConformance<TMetadata extends Sessi
 			`fork application lists (${sourceState} source)`,
 			"tree fork copies lists at distinct addresses",
 			async ({ repo }) => {
+				// 中文：每个列表都保留自己的内容：同一命名空间中的键 "" 和 "other" 不得合并。不同命名空间也保持独立；pi2.events 属于应用，而非保留命名空间。
 				// Each list keeps its own contents: keys "" and "other" in one namespace must not merge.
 				// A different namespace also stays separate; pi2.events is application-owned, not reserved.
 				const source = await repo.create({ id: "source" }, BACKGROUND_CONTEXT);
@@ -806,6 +815,7 @@ function createSessionRepoForkApplicationListConformance<TMetadata extends Sessi
 			`fork application lists (${sourceState} source)`,
 			"tree fork copies only survivors after list deletion and reappend",
 			async ({ repo }) => {
+				// 中文：追加旧元素 → 删除 → 追加新元素后，只能复制新元素，即使这些变更处于同一事务中也是如此。删除后未再追加元素的列表，在分叉中必须保持为空。
 				// Append old -> delete -> append new must copy only new, even when changes share a transaction.
 				// A list deleted without a later append must remain empty in the fork.
 				const source = await repo.create({ id: "source" }, BACKGROUND_CONTEXT);
@@ -849,6 +859,7 @@ function createSessionRepoForkApplicationListConformance<TMetadata extends Sessi
 			`fork application lists (${sourceState} source)`,
 			"tree fork preserves list element sequences including gaps",
 			async ({ repo }) => {
+				// 中文：其他写入也会消耗序列号。序列号为 2 和 4 的列表元素在分叉中必须仍为 2 和 4，不能重新编号为 1 和 2。
 				// Other writes consume sequences too. List elements at seq 2 and 4 must stay at 2 and 4
 				// in the fork, not be renumbered to 1 and 2.
 				const source = await repo.create({ id: "source" }, BACKGROUND_CONTEXT);
@@ -887,6 +898,8 @@ function createSessionRepoForkApplicationListConformance<TMetadata extends Sessi
 				`fork application lists (${sourceState} source)`,
 				`tree fork continues ${order} pagination using source cursors`,
 				async ({ repo }) => {
+					// 中文：源会话的游标必须能在分叉中的相同位置继续读取。升序读取 [first, second] 后应继续得到 [third]；降序则相反。在最后一个元素之后继续读取必须返回
+					// 空页，不能重复该元素。
 					// A cursor from the source must resume at the same place in the fork. After reading
 					// [first, second] ascending, continue with [third]; descending does the reverse.
 					// Continuing after the final element must return an empty page, not repeat that element.
@@ -928,6 +941,7 @@ function createSessionRepoForkApplicationListConformance<TMetadata extends Sessi
 	]);
 }
 
+// 中文：创建分支应用状态测试用例。
 /** Creates branch application-state cases. */
 function createSessionRepoBranchForkApplicationStateConformance<TMetadata extends SessionMetadata>(
 	backendFactory: () => Promise<Pick<SessionRepo<TMetadata>, "create" | "fork">>,
@@ -940,6 +954,8 @@ function createSessionRepoBranchForkApplicationStateConformance<TMetadata extend
 			`branch fork application state (${sourceState} source)`,
 			"excludes overwritten and unchanged application values",
 			async ({ repo }) => {
+				// 中文：WP08 §1.1：设置 v1 → 分叉点 → 覆盖为 v2。分支分叉不复制任一版本：它无法重建 v1，也不得复制 v2。即使更早且未变更的值也要排除，因此仅按分叉
+				// 点的序列号筛选当前值还不够。
 				// WP08 §1.1: set v1 -> fork point -> overwrite with v2. A branch fork copies neither
 				// version: it cannot reconstruct v1 and must not copy v2. Even unchanged older values
 				// are excluded, so filtering current values by the fork point's sequence is not enough.
@@ -975,6 +991,7 @@ function createSessionRepoBranchForkApplicationStateConformance<TMetadata extend
 
 					strictEqual(await getBranchTip(fork, "review"), entryId);
 					strictEqual(await fork.getValue(state, BACKGROUND_CONTEXT), undefined);
+					// 中文：早于分叉点且仍然存在的值也必须排除，不能通过序列号截止条件将其复制。
 					// A survivor older than the fork point must also be excluded, not copied by a seq cutoff.
 					strictEqual(await fork.getValue(unchanged, BACKGROUND_CONTEXT), undefined);
 				} finally {
@@ -987,6 +1004,8 @@ function createSessionRepoBranchForkApplicationStateConformance<TMetadata extend
 			`branch fork application state (${sourceState} source)`,
 			"excludes deleted/reappended and untouched application lists",
 			async ({ repo }) => {
+				// 中文：WP08 §1.1：追加旧元素 → 分叉点 → 删除 → 追加新元素。分支分叉既不复制已删除的元素，也不复制新元素。另一个未被修改的列表同样被排除，即使其元素从分叉
+				// 点之前一直保留至今。
 				// WP08 §1.1: append old -> fork point -> delete -> append new. A branch fork copies
 				// neither the deleted elements nor the new ones. A separate untouched list is also
 				// excluded, even though its elements still survive from before the fork point.
@@ -1027,6 +1046,7 @@ function createSessionRepoBranchForkApplicationStateConformance<TMetadata extend
 
 					strictEqual(await getBranchTip(fork, "review"), entryId);
 					deepStrictEqual(await fork.readList(events, undefined, BACKGROUND_CONTEXT), []);
+					// 中文：即使是分叉点之前留下且仍然存在的元素，也要排除。
 					// Even elements still surviving from before the fork point are excluded.
 					deepStrictEqual(await fork.readList(untouched, undefined, BACKGROUND_CONTEXT), []);
 				} finally {
@@ -1037,6 +1057,7 @@ function createSessionRepoBranchForkApplicationStateConformance<TMetadata extend
 	]);
 }
 
+// 中文：创建要求在 create 和 fork 操作之间预留目标 ID 的分叉测试用例。
 /** Creates fork cases that require destination reservation across create and fork. */
 export function createSessionRepoForkDestinationReservationConformance<TMetadata extends SessionMetadata>(
 	backendFactory: () => Promise<Pick<SessionRepo<TMetadata>, "create" | "fork">>,
@@ -1079,6 +1100,7 @@ export function createSessionRepoForkDestinationReservationConformance<TMetadata
 	];
 }
 
+// 中文：创建要求在活动源存储队列上建立快照边界的分叉测试用例。
 /** Creates fork cases that require a snapshot boundary on an active source storage queue. */
 export function createSessionRepoForkSourceSnapshotConformance<TMetadata extends SessionMetadata>(
 	backendFactory: () => Promise<Pick<SessionRepo<TMetadata>, "create" | "fork">>,
@@ -1149,6 +1171,7 @@ export function createSessionRepoForkSourceSnapshotConformance<TMetadata extends
 	];
 }
 
+// 中文：创建所有分叉协调测试用例。
 /** Creates every fork coordination case. */
 export function createSessionRepoForkCoordinationConformance<TMetadata extends SessionMetadata>(
 	backendFactory: () => Promise<Pick<SessionRepo<TMetadata>, "create" | "fork">>,
@@ -1160,6 +1183,7 @@ export function createSessionRepoForkCoordinationConformance<TMetadata extends S
 	];
 }
 
+// 中文：创建所有分叉一致性测试用例。
 /** Creates every fork conformance case. */
 export function createSessionRepoForkConformance<TMetadata extends SessionMetadata>(
 	backendFactory: () => Promise<Pick<SessionRepo<TMetadata>, "create" | "list" | "fork">>,
@@ -1171,6 +1195,7 @@ export function createSessionRepoForkConformance<TMetadata extends SessionMetada
 	];
 }
 
+// 中文：创建所有 SessionRepo 一致性测试用例。
 /** Creates every SessionRepo conformance case. */
 export function createSessionRepoConformance<TMetadata extends SessionMetadata>(
 	factory: () => Promise<SessionRepo<TMetadata>>,

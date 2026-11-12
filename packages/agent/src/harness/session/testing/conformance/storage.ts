@@ -115,6 +115,7 @@ function compactionEntry(id: string, parentId: string | null): NewEntry<Compacti
 	};
 }
 
+// 中文：引入 EntryStructure 是为了测试 scanBranchStructure 的一致性，尤其是 SQLite 不读取载荷的分支扫描。
 // EntryStructure is included for scanBranchStructure conformance, especially SQLite's payload-free branch scans.
 function ids(entries: readonly (Entry | EntryStructure)[]): string[] {
 	return entries.map((entry) => entry.id);
@@ -130,6 +131,7 @@ async function assertCommitStats(storage: Storage, result: CommitResult): Promis
 	deepStrictEqual(result.stats, await storage.getStats(BACKGROUND_CONTEXT));
 }
 
+// 中文：为持久化 Storage 契约创建全新且不依赖测试运行器的一致性测试用例。
 /** Creates fresh, runner-independent cases for the durable Storage contract. */
 export function createStorageConformance(factory: () => Promise<StorageFixture>): readonly ConformanceCase[] {
 	return [

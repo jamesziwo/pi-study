@@ -29,6 +29,7 @@ import {
 	serializeConversation,
 } from "./utils.ts";
 
+// 中文：已生成、准备持久化为分支摘要条目的摘要数据。
 /** Generated branch summary data ready to be persisted as a branch-summary entry. */
 export interface BranchSummaryResult {
 	summary: string;
@@ -37,52 +38,71 @@ export interface BranchSummaryResult {
 	modifiedFiles: string[];
 }
 
+// 中文：保存在生成的分支摘要条目上的文件操作详情。
 /** File-operation details stored on generated branch summary entries. */
 export interface BranchSummaryDetails {
+	// 中文：探索被总结的分支时读取的文件。
 	/** Files read while exploring the summarized branch. */
 	readFiles: string[];
+	// 中文：探索被总结的分支时修改的文件。
 	/** Files modified while exploring the summarized branch. */
 	modifiedFiles: string[];
 }
 
 export type { FileOperations } from "./utils.ts";
 
+// 中文：为生成摘要准备好的分支内容。
 /** Prepared branch content for summarization. */
 export interface BranchPreparation {
+	// 中文：选入分支摘要的消息。
 	/** Messages selected for the branch summary. */
 	messages: AgentMessage[];
+	// 中文：从分支提取的文件操作。
 	/** File operations extracted from the branch. */
 	fileOps: FileOperations;
+	// 中文：所选消息的估算 token 数。
 	/** Estimated token count for selected messages. */
 	totalTokens: number;
 }
 
+// 中文：选中用于生成分支摘要的条目。
 /** Entries selected for branch summarization. */
 export interface CollectEntriesResult {
+	// 中文：按时间先后排列的待总结条目。
 	/** Entries to summarize in chronological order. */
 	entries: Entry[];
+	// 中文：原 tip 与目标条目之间最深的公共祖先。
 	/** Deepest common ancestor between the previous tip and target entry. */
 	commonAncestorId: string | null;
 }
 
+// 中文：生成分支摘要的选项。
 /** Options for generating a branch summary. */
 export interface GenerateBranchSummaryOptions {
+	// 中文：摘要请求经过的提供方集合，负责解析认证信息。
 	/** Provider collection the summarization request goes through; owns auth resolution. */
 	models: Models;
+	// 中文：用于生成摘要的模型。
 	/** Model used for summarization. */
 	model: Model<Api>;
+	// 中文：可选指令，用于追加到默认提示词或替换默认提示词。
 	/** Optional instructions appended to or replacing the default prompt. */
 	customInstructions?: string;
+	// 中文：用自定义指令替换默认提示词，而不是追加。
 	/** Replace the default prompt with custom instructions instead of appending them. */
 	replaceInstructions?: boolean;
+	// 中文：为提示词和模型输出预留的 token 数，默认 16384。
 	/** Tokens reserved for prompt and model output. Defaults to 16384. */
 	reserveTokens?: number;
+	// 中文：针对临时摘要生成错误的可选重试策略。
 	/** Optional retry policy for transient summarization errors. */
 	retry?: RetryPolicy;
+	// 中文：用于报告重试情况的可选回调。
 	/** Optional callbacks for retry reporting. */
 	callbacks?: RetryCallbacks;
 }
 
+// 中文：收集导航到其他会话树条目之前应当总结的条目。
 /** Collect entries that should be summarized before navigating to a different session tree entry. */
 export async function collectEntriesForBranchSummary(
 	branch: Pick<Branch, "findEntries">,
@@ -132,6 +152,7 @@ function getMessageFromEntry(entry: Entry): AgentMessage | undefined {
 	}
 }
 
+// 中文：在可选 token 预算内准备要总结的分支条目。
 /** Prepare branch entries for summarization within an optional token budget. */
 export function prepareBranchEntries(entries: Entry[], tokenBudget: number = 0): BranchPreparation {
 	const messages: AgentMessage[] = [];
@@ -215,6 +236,7 @@ Use this EXACT format:
 
 Keep each section concise. Preserve exact file paths, function names, and error messages.`;
 
+// 中文：为离开的分支条目生成摘要。
 /** Generate a summary for abandoned branch entries. */
 export function generateBranchSummary(
 	entries: Entry[],
@@ -238,6 +260,7 @@ export interface PreparedBranchSummaryOptions {
 	replaceInstructions?: boolean;
 }
 
+// 中文：通过调用方管理的单次请求接口，基于准备好的内容生成分支摘要。
 /** Generate a prepared branch summary through a caller-owned one-request boundary. */
 export async function generateBranchSummaryWithRequest(
 	preparation: BranchPreparation,

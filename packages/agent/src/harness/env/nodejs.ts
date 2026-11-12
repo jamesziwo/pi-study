@@ -66,6 +66,7 @@ function resolvePath(cwd: string, path: string): string {
 		try {
 			normalized = fileURLToPath(normalized);
 		} catch {
+			// 中文：将格式错误的 URL 保留为普通路径，使文件系统方法保持不抛错的约定。
 			// Keep malformed URLs as ordinary paths so filesystem methods preserve their non-throwing contract.
 		}
 	}
@@ -270,9 +271,11 @@ function killProcessTree(pid: number): void {
 					windowsHide: true,
 				},
 			);
+			// 中文：spawn 失败会异步发出 "error"；消费该事件，避免 Node 崩溃。
 			// A failed spawn emits "error" asynchronously; consume it to avoid crashing Node.
 			child.once("error", () => {});
 		} catch {
+			// 中文：忽略错误。
 			// Ignore errors.
 		}
 		return;
@@ -284,6 +287,7 @@ function killProcessTree(pid: number): void {
 		try {
 			process.kill(pid, "SIGKILL");
 		} catch {
+			// 中文：进程已经结束。
 			// Process already dead.
 		}
 	}
@@ -370,6 +374,7 @@ function waitForChildProcess(
 	});
 }
 
+// 中文：严格按 LF 处理的读取器；Node readline 不报告最后一行是否以换行符终止。
 /** Strict LF reader; Node readline does not report whether its final line was newline-terminated. */
 class NodeTextLineReader implements TextLineReader {
 	private readonly file: Awaited<ReturnType<typeof openFile>>;
@@ -406,6 +411,7 @@ class NodeTextLineReader implements TextLineReader {
 					return ok({ text, terminated: false });
 				}
 
+				// 中文：显式指定读取位置，使被中止的读取可重试而不会跳过字节。
 				// Explicit positions allow an aborted read to be retried without skipping bytes.
 				const { bytesRead } = await this.file.read(this.chunk, 0, this.chunk.length, this.byteOffset);
 				const afterReadAbort = abortResult<TextLine | undefined>(context.abortSignal, this.path);
@@ -430,6 +436,7 @@ class NodeTextLineReader implements TextLineReader {
 		try {
 			await this.file.close();
 		} catch {
+			// 中文：关闭操作尽力执行，包括取消后或此前发生 I/O 失败的情形。
 			// Closing is best-effort, including after cancellation or an earlier I/O failure.
 		}
 	}
@@ -678,6 +685,7 @@ export class NodeExecutionEnv implements ExecutionEnv {
 						return;
 					}
 					const output = capture.snapshot();
+					// 中文：被信号终止的进程（例如由 OOM killer 终止）没有退出码；将其映射为惯例中的 128 加信号编号，避免调用方误判为成功退出。
 					// A process killed by a signal (e.g. OOM killer) has no exit code; map it
 					// to the conventional 128 + signal number so callers do not mistake it
 					// for a successful exit.

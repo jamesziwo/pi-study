@@ -29,6 +29,7 @@ function createStorageBenchmarkTransaction(startIndex: number, entryCount: numbe
 	);
 }
 
+// 中文：生成确定性的初始数据事务，但不声称其数据分布代表生产环境。
 /** Generates deterministic seed transactions without claiming a production data distribution. */
 export function* generateStorageBenchmarkSeedTransactions(dataset: StorageBenchmarkDataset): Generator<Write[]> {
 	for (let startIndex = 0; startIndex < dataset.entryCount; startIndex += SEED_BATCH_SIZE) {
@@ -40,12 +41,14 @@ export function* generateStorageBenchmarkSeedTransactions(dataset: StorageBenchm
 	}
 }
 
+// 中文：填充一个确定性的合成线性分支。
 /** Seeds one deterministic synthetic linear branch. */
 export async function seedStorageBenchmark(storage: Storage, dataset: StorageBenchmarkDataset): Promise<void> {
 	for (const transaction of generateStorageBenchmarkSeedTransactions(dataset))
 		await storage.commit(transaction, BACKGROUND_CONTEXT);
 }
 
+// 中文：在预先填充数据的测试夹具上运行的稳态读取操作。
 /** A steady-state read operation run against a pre-seeded fixture. */
 interface StorageReadBenchmarkScenario {
 	readonly name: string;
@@ -53,6 +56,7 @@ interface StorageReadBenchmarkScenario {
 	run(storage: Storage, dataset: StorageBenchmarkDataset): Promise<number>;
 }
 
+// 中文：对每个独立准备的测试夹具执行一次的写入操作。
 /** A write operation run once against each independently prepared fixture. */
 interface StorageWriteBenchmarkScenario {
 	readonly name: string;
@@ -82,6 +86,7 @@ const mixedAppendTransaction: Write[] = [
 	}),
 ];
 
+// 中文：共用的读取场景。返回数字可确保每次读取的结果都被使用。
 /** Shared read scenarios. Returning a number ensures each result is consumed. */
 export const STORAGE_READ_BENCHMARK_SCENARIOS: readonly StorageReadBenchmarkScenario[] = [
 	{
@@ -114,6 +119,7 @@ export const STORAGE_READ_BENCHMARK_SCENARIOS: readonly StorageReadBenchmarkScen
 	},
 ];
 
+// 中文：共用的写入操作。每次调用接收到的基准测试前状态都等价。
 /** Shared writes. Every invocation receives equivalent pre-benchmark state. */
 export const STORAGE_WRITE_BENCHMARK_SCENARIOS: readonly StorageWriteBenchmarkScenario[] = [
 	{

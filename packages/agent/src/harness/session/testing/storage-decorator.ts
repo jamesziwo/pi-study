@@ -13,6 +13,7 @@ import type {
 } from "../types.ts";
 import type { ListElement, ListReadOptions, StoredValue, Value, ValueList } from "../values.ts";
 
+// 中文：仅用于测试的转发基类，供只改变部分 Storage 行为的装饰器使用。
 /** Test-only forwarding base for decorators that alter one part of Storage behavior. */
 export class StorageDecorator implements Storage {
 	protected readonly delegate: Storage;
