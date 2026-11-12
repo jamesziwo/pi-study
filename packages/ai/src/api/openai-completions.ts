@@ -59,6 +59,8 @@ import { clampOpenAIPromptCacheKey } from "./openai-prompt-cache.ts";
 import { buildBaseOptions, clampThinkingBudgetToAnswerRoom, thinkingBudgetForLevel } from "./simple-options.ts";
 import { transformMessages } from "./transform-messages.ts";
 
+// 中文：检查对话消息中是否包含工具调用或工具结果。需要此检查，是因为通过代理使用 Anthropic 时，若消息包含 tool_calls 或 tool 角色消息，就必须提
+// 供 tools 参数。
 /**
  * Check if conversation messages contain tool calls or tool results.
  * This is needed because Anthropic (via proxy) requires the tools param
@@ -163,6 +165,8 @@ function isOpenAIReasoningDetail(detail: unknown): detail is OpenAIReasoningDeta
 export interface OpenAICompletionsOptions extends StreamOptions {
 	toolChoice?: OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
 	reasoningEffort?: "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+	// 中文：各思考级别的 token 预算。设置 compat.thinkingTokenBudgetField、
+	// compat.supportsThinkingTokenBudget，或使用 { "$var": "thinking.budget" } 时会用到。
 	/** Token budgets per thinking level. Used when `compat.thinkingTokenBudgetField` or `compat.supportsThinkingTokenBudget` is set, or by `{ "$var": "thinking.budget" }`. */
 	thinkingBudgets?: ThinkingBudgets;
 }
@@ -334,6 +338,7 @@ export const stream: StreamFunction<"openai-completions", OpenAICompletionsOptio
 			timestamp: Date.now(),
 		};
 
+		// 中文：reasoning_details 是回放元数据，并非用户可见的流式增量。流式处理期间保存在内存中，在块结束时一次性序列化。
 		// `reasoning_details` are replay metadata, not user-visible stream deltas.
 		// Keep them in memory during streaming and serialize once when the block is finalized.
 		let streamedReasoningDetails: OpenAIReasoningDetail[] | undefined;
@@ -454,6 +459,7 @@ export const stream: StreamFunction<"openai-completions", OpenAICompletionsOptio
 					} else {
 						block.arguments = parseStreamingJson(block.partialArgs);
 					}
+					// 中文：原地完成最终处理并移除临时缓冲区，使回放只携带解析后的参数。
 					// Finalize in-place and strip the scratch buffers so replay only
 					// carries parsed arguments.
 					delete block.partialArgs;
@@ -495,6 +501,7 @@ export const stream: StreamFunction<"openai-completions", OpenAICompletionsOptio
 					block = toolCallBlocksById.get(toolCall.id);
 				}
 				if (!block) {
+					// 中文：注意：正常情况下不应进入这里的 input 回退分支；若模型编造了未知工具，至少还有一个位置保存相关数据。
 					// Note: the "input" fallback here should/must not be taken.  in case the LLM makes up
 					// a tool we don't knwo about, we at least have a place to stash our stuff.
 					const customInputProperty =
@@ -549,6 +556,7 @@ export const stream: StreamFunction<"openai-completions", OpenAICompletionsOptio
 			for await (const chunk of openaiStream) {
 				if (!chunk || typeof chunk !== "object") continue;
 
+				// 中文：OpenAI 文档将 ChatCompletionChunk.id 定义为聊天补全的唯一标识，同一次流式补全中的每个分块都携带相同 ID。
 				// OpenAI documents ChatCompletionChunk.id as the unique chat completion identifier,
 				// and each chunk in a streamed completion carries the same id.
 				output.responseId ||= chunk.id;
@@ -562,6 +570,7 @@ export const stream: StreamFunction<"openai-completions", OpenAICompletionsOptio
 				const choice = Array.isArray(chunk.choices) ? chunk.choices[0] : undefined;
 				if (!choice) continue;
 
+				// 中文：回退处理：某些提供方（例如 Moonshot）在 choice.usage 中返回用量，而非标准的 chunk.usage。
 				// Fallback: some providers (e.g., Moonshot) return usage
 				// in choice.usage instead of the standard chunk.usage
 				if (!chunk.usage && (choice as any).usage) {
@@ -594,6 +603,8 @@ export const stream: StreamFunction<"openai-completions", OpenAICompletionsOptio
 						});
 					}
 
+					// 中文：某些端点在 reasoning_content（llama.cpp）或 reasoning（其他 OpenAI 兼容端点）中返回推理内容。使用第一个非空推理字段以避
+					// 免重复，例如 chutes.ai 会在 reasoning_content 和 reasoning 中返回相同内容。
 					// Some endpoints return reasoning in reasoning_content (llama.cpp),
 					// or reasoning (other openai compatible endpoints)
 					// Use the first non-empty reasoning field to avoid duplication
@@ -663,6 +674,8 @@ export const stream: StreamFunction<"openai-completions", OpenAICompletionsOptio
 							if (!isOpenAIReasoningDetail(detail)) continue;
 							ensureThinkingBlock("");
 							streamedReasoningDetails ??= [];
+							// 中文：在现有签名字段中保存提供方的回放数据。OpenRouter 将 reasoning_details 作为增量发送：连续的文本或摘要增量合并为逻辑条目，加密条目则保持
+							// 不透明且彼此独立。
 							// Keep provider replay data in the existing signature slot. OpenRouter streams
 							// reasoning_details as deltas: consecutive text/summary deltas are merged into
 							// logical entries, while encrypted entries remain opaque and discrete.
@@ -700,6 +713,7 @@ export const stream: StreamFunction<"openai-completions", OpenAICompletionsOptio
 					applyStreamedReasoningDetails(block);
 				}
 				delete (block as { index?: number }).index;
+				// 中文：流式临时缓冲区仅用于解析，绝不能持久化。
 				// Streaming scratch buffers are only used during parsing; never persist them.
 				delete (block as { partialArgs?: string }).partialArgs;
 				delete (block as { customInput?: unknown }).customInput;
@@ -707,6 +721,8 @@ export const stream: StreamFunction<"openai-completions", OpenAICompletionsOptio
 			}
 			output.stopReason = options?.signal?.aborted ? "aborted" : "error";
 			output.errorMessage = formatProviderError(normalizeProviderError(error));
+			// 中文：通过 OpenRouter 调用的某些提供方在此字段返回附加信息。normalizeProviderError 已将解析后的响应体 error.error 转为字符
+			// 串放入 errorMessage，因此仅在尚未包含原始元数据时追加，避免重复显示。
 			// Some providers via OpenRouter give additional information in this field.
 			// normalizeProviderError already stringifies the parsed body (error.error)
 			// into errorMessage, so only append the raw metadata when it is not already
@@ -775,6 +791,7 @@ function createClient(
 		}
 	}
 
+	// 中文：最后合并选项中的请求头，使其能够覆盖默认值。
 	// Merge options headers last so they can override defaults
 	if (optionsHeaders) {
 		Object.assign(headers, optionsHeaders);
@@ -844,6 +861,7 @@ function buildParams(
 			(params as any).tool_stream = true;
 		}
 	} else if (hasToolHistory(context.messages)) {
+		// 中文：通过 LiteLLM 或代理使用 Anthropic 时，对话中包含 tool_calls/tool_results 就必须提供 tools 参数。
 		// Anthropic (via LiteLLM/proxy) requires tools param when conversation has tool_calls/tool_results
 		params.tools = [];
 	}
@@ -922,6 +940,7 @@ function buildParams(
 				model.thinkingLevelMap?.[options.reasoningEffort] ?? options.reasoningEffort;
 		}
 	} else if (compat.thinkingFormat === "openrouter" && model.reasoning) {
+		// 中文：OpenRouter 通过嵌套的 reasoning 对象统一不同提供方的推理配置。
 		// OpenRouter normalizes reasoning across providers via a nested reasoning object.
 		const openRouterParams = params as typeof params & { reasoning?: { effort?: string } };
 		if (options?.reasoningEffort) {
@@ -953,6 +972,7 @@ function buildParams(
 			stringThinkingParams.thinking = model.thinkingLevelMap?.off ?? "none";
 		}
 	} else if (options?.reasoningEffort && model.reasoning && compat.supportsReasoningEffort) {
+		// 中文：OpenAI 风格的 reasoning_effort。
 		// OpenAI-style reasoning_effort
 		(params as any).reasoning_effort = model.thinkingLevelMap?.[options.reasoningEffort] ?? options.reasoningEffort;
 	} else if (!options?.reasoningEffort && model.reasoning && compat.supportsReasoningEffort) {
@@ -962,6 +982,8 @@ function buildParams(
 		}
 	}
 
+	// 中文：使用顶层预算字段限制推理量。此设置独立于 thinkingFormat，因为同一服务器可以提供 zai、qwen 或 chat-template 模型。此处推理和回
+	// 答共用 max_tokens，若不限制推理阶段，可能耗尽整个响应预算，导致既没有回答也没有工具调用。
 	// Cap reasoning with a top-level budget field. Independent of thinkingFormat: the
 	// same server can serve zai, qwen or chat-template models. Reasoning and the answer
 	// share max_tokens here, so an uncapped reasoning phase can consume the whole
@@ -970,11 +992,13 @@ function buildParams(
 		Object.assign(params, { [thinkingTokenBudgetField]: thinkingBudget });
 	}
 
+	// 中文：OpenRouter 的提供方路由偏好。
 	// OpenRouter provider routing preferences
 	if (model.compat?.openRouterRouting) {
 		(params as any).provider = model.compat.openRouterRouting;
 	}
 
+	// 中文：Vercel AI Gateway 的提供方路由偏好。
 	// Vercel AI Gateway provider routing preferences
 	if (model.compat?.vercelGatewayRouting) {
 		const routing = model.compat.vercelGatewayRouting;
@@ -986,6 +1010,7 @@ function buildParams(
 		}
 	}
 
+	// 中文：最后应用自定义键，使其覆盖已明确设置的请求字段。
 	// Last so custom keys override the named request fields.
 	if (options?.samplingParams) {
 		Object.assign(params, options.samplingParams);
@@ -1184,6 +1209,9 @@ export function convertMessages(
 	const params: ChatCompletionMessageParam[] = [];
 
 	const normalizeToolCallId = (id: string): string => {
+		// 中文：处理 OpenAI Responses API 中以竖线分隔的 ID，格式为 {call_id}|{id}，其中 id 可能超过 400 个字符并含有 +、/、=
+		// 等特殊字符。这些 ID 来自 github-copilot、openai-codex、opencode 等提供方。提取 call_id 部分并规范化；同一轮的多个工具调用
+		// 可能共享 call_id，但 item_id 不同。回放到要求工具调用 ID 各不相同的 Chat Completions 时，需保留条目级唯一性。
 		// Handle pipe-separated IDs from OpenAI Responses API
 		// Format: {call_id}|{id} where {id} can be 400+ chars with special chars (+, /, =)
 		// These come from providers like github-copilot, openai-codex, opencode
@@ -1192,6 +1220,7 @@ export function convertMessages(
 		// Preserve item-level uniqueness when replaying into Chat Completions, which
 		// requires distinct tool call ids.
 		if (id.includes("|")) {
+			// 中文：清理为允许的字符，并截断到 40 个字符，即 OpenAI 的限制。
 			// Sanitize to allowed chars and truncate to 40 chars (OpenAI limit)
 			const separatorIndex = id.indexOf("|");
 			const callId = id.slice(0, separatorIndex).replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -1221,6 +1250,7 @@ export function convertMessages(
 
 	for (let i = 0; i < transformedMessages.length; i++) {
 		const msg = transformedMessages[i];
+		// 中文：某些提供方不允许用户消息紧接在工具结果之后，因此插入一条合成的助手消息进行衔接。
 		// Some providers don't allow user messages directly after tool results
 		// Insert a synthetic assistant message to bridge the gap
 		if (compat.requiresAssistantAfterToolResult && lastRole === "toolResult" && msg.role === "user") {
@@ -1259,6 +1289,7 @@ export function convertMessages(
 				});
 			}
 		} else if (msg.role === "assistant") {
+			// 中文：某些提供方不接受 null 内容，改用空字符串。
 			// Some providers don't accept null content, use empty string instead
 			const assistantMsg: ChatCompletionAssistantMessageParamWithReasoning = {
 				role: "assistant",
@@ -1291,12 +1322,16 @@ export function convertMessages(
 			const nonEmptyThinkingBlocks = thinkingBlocks.filter((block) => block.thinking.trim().length > 0);
 			if (nonEmptyThinkingBlocks.length > 0) {
 				if (compat.requiresThinkingAsText) {
+					// 中文：将思考块转换为纯文本，不加标签，以避免模型模仿标签。
 					// Convert thinking blocks to plain text (no tags to avoid model mimicking them)
 					const thinkingText = nonEmptyThinkingBlocks
 						.map((block) => sanitizeSurrogates(block.thinking))
 						.join("\n\n");
 					assistantMsg.content = [{ type: "text", text: thinkingText }, ...assistantTextParts];
 				} else {
+					// 中文：始终将助手内容作为纯字符串发送，即 OpenAI Chat Completions API 的标准格式。发送 {type:"text", text:"..."} 对
+					// 象数组属于非标准形式，会使某些模型（例如通过 NVIDIA NIM 使用的 DeepSeek V3.2）在输出中照搬内容块结构，形成类似
+					// [{'type':'text','text':'[{...}]'}] 的递归嵌套。
 					// Always send assistant content as a plain string (OpenAI Chat Completions
 					// API standard format). Sending as an array of {type:"text", text:"..."}
 					// objects is non-standard and causes some models (e.g. DeepSeek V3.2 via
@@ -1306,8 +1341,10 @@ export function convertMessages(
 						assistantMsg.content = assistantText;
 					}
 
+					// 中文：reasoning_details 是原始推理字段的结构化替代形式。
 					// reasoning_details is the structured alternative to a raw reasoning field.
 					if (!preservedReasoningDetails) {
+						// 中文：如有签名，使用第一个思考块的签名，适用于 llama.cpp 服务器搭配 gpt-oss。
 						// Use the signature from the first thinking block if available (for llama.cpp server + gpt-oss)
 						let signature = nonEmptyThinkingBlocks[0].thinkingSignature;
 						if (model.provider === "opencode-go" && signature === "reasoning") {
@@ -1319,6 +1356,9 @@ export function convertMessages(
 					}
 				}
 			} else if (assistantText.length > 0) {
+				// 中文：始终将助手内容作为纯字符串发送，即 OpenAI Chat Completions API 的标准格式。发送 {type:"text", text:"..."} 对
+				// 象数组属于非标准形式，会使某些模型（例如通过 NVIDIA NIM 使用的 DeepSeek V3.2）在输出中照搬内容块结构，形成类似
+				// [{'type':'text','text':'[{...}]'}] 的递归嵌套。
 				// Always send assistant content as a plain string (OpenAI Chat Completions
 				// API standard format). Sending as an array of {type:"text", text:"..."}
 				// objects is non-standard and causes some models (e.g. DeepSeek V3.2 via
@@ -1360,6 +1400,8 @@ export function convertMessages(
 			) {
 				assistantMsg.reasoning_content = "";
 			}
+			// 中文：跳过既无内容也无工具调用的助手消息。某些提供方要求 content 和 tool_calls 至少存在一个；其他提供方也不接受空助手消息。这用于处理尚未收到任何内容
+			// 就被中止的助手响应。
 			// Skip assistant messages that have no content and no tool calls.
 			// Some providers require "either content or tool_calls, but not none".
 			// Other providers also don't accept empty assistant messages.
@@ -1381,6 +1423,7 @@ export function convertMessages(
 			for (; j < transformedMessages.length && transformedMessages[j].role === "toolResult"; j++) {
 				const toolMsg = transformedMessages[j] as ToolResultMessage;
 
+				// 中文：提取文本和图像内容。
 				// Extract text and image content
 				const textResult = toolMsg.content
 					.filter(isTextContentBlock)
@@ -1388,9 +1431,11 @@ export function convertMessages(
 					.join("\n");
 				const hasImages = toolMsg.content.some((c) => c.type === "image");
 
+				// 中文：始终发送带文本的工具结果；仅有图像时使用占位文本。
 				// Always send tool result with text (or placeholder if only images)
 				const hasText = textResult.length > 0;
 				const toolResultText = hasText ? textResult : hasImages ? "(see attached image)" : "(no tool output)";
+				// 中文：某些提供方要求工具结果包含 name 字段。
 				// Some providers require the 'name' field in tool results
 				const toolResultMsg: ChatCompletionToolMessageParam = {
 					role: "tool",
@@ -1454,6 +1499,7 @@ export function convertMessages(
 						role: "system",
 						tools: convertTools(deferredTools, compat),
 					};
+					// 中文：Kimi 接受包含 tools 但省略标准 content 字段的 system 消息。
 					// Kimi accepts a system message with tools but omits the standard content field.
 					params.push(kimiToolMessage as unknown as ChatCompletionMessageParam);
 				}
@@ -1497,6 +1543,7 @@ function convertTools(
 				name: tool.name,
 				description: tool.description,
 				parameters: getJsonSchemaToolParameters(tool, strict) as Record<string, unknown>,
+				// 中文：仅在提供方支持时包含 strict；某些提供方会拒绝未知字段。
 				// Only include strict if provider supports it. Some reject unknown fields.
 				...(compat.supportsStrictMode !== false && { strict: strict ?? false }),
 			},
@@ -1520,6 +1567,11 @@ function parseChunkUsage(
 		rawUsage.prompt_tokens_details?.cached_tokens ?? rawUsage.prompt_cache_hit_tokens ?? rawUsage.cached_tokens ?? 0;
 	const cacheWriteTokens = rawUsage.prompt_tokens_details?.cache_write_tokens || 0;
 
+	// 中文：遵循 OpenAI/OpenRouter 文档语义：cached_tokens 表示缓存读取（命中）的 token。各提供方放置位置不同：
+	// OpenAI/OpenRouter 使用 prompt_tokens_details.cached_tokens，DeepSeek 使用
+	// prompt_cache_hit_tokens，Kimi 文档则规定在最终用量分块的顶层 usage.cached_tokens 中返回。OpenAI 未记录或输出
+	// cache_write_tokens，但 OpenRouter 兼容提供方可将其作为独立写入计数返回。OpenRouter 自身的提供方实现和测试确认了这种独立映射，链接
+	// 见下方原注释。不要从 cached_tokens 中扣除写入量，否则会少计遵循规范的提供方用量。DS4 也采用相同契约，链接同样保留在原注释中。
 	// Follow documented OpenAI/OpenRouter semantics: cached_tokens is cache-read
 	// tokens (hits). Providers disagree on placement: OpenAI/OpenRouter use
 	// prompt_tokens_details.cached_tokens, DeepSeek uses prompt_cache_hit_tokens,
@@ -1532,6 +1584,7 @@ function parseChunkUsage(
 	// providers are under-reported. DS4 mirrors this contract too:
 	// https://github.com/antirez/ds4/pull/29
 	const input = Math.max(0, promptTokens - cacheReadTokens - cacheWriteTokens);
+	// 中文：OpenAI 的 completion_tokens 已包含 reasoning_tokens。
 	// OpenAI completion_tokens already includes reasoning_tokens.
 	const outputTokens = rawUsage.completion_tokens || 0;
 	const usage: AssistantMessage["usage"] = {
@@ -1573,6 +1626,7 @@ function mapStopReason(reason: ChatCompletionChunk.Choice["finish_reason"] | str
 	}
 }
 
+// 中文：根据提供方名称和 baseUrl 自动检测兼容设置。未设置 model.compat 时以此为基础；显式 model.compat 条目覆盖检测值。
 /**
  * Auto-detect compatibility settings from provider name and baseUrl.
  * Used as the base when model.compat is not set; explicit model.compat
@@ -1675,6 +1729,7 @@ function detectCompat(model: Model<"openai-completions">): ResolvedOpenAIComplet
 	};
 }
 
+// 中文：获取模型最终生效的兼容设置：先根据提供方及 URL 自动检测，再用显式 model.compat 覆盖。
 /**
  * Get resolved compatibility settings for a model.
  * Auto-detects from provider/URL then overrides with explicit model.compat.

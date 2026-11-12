@@ -38,6 +38,7 @@ import { clampOpenAIPromptCacheKey } from "./openai-prompt-cache.ts";
 import { convertResponsesMessages, convertResponsesTools, processResponsesStream } from "./openai-responses-shared.ts";
 import { buildBaseOptions } from "./simple-options.ts";
 
+// 中文：配置。
 // ============================================================================
 // Configuration
 // ============================================================================
@@ -48,6 +49,7 @@ const DEFAULT_MAX_RETRIES = 0;
 const BASE_DELAY_MS = 1000;
 const DEFAULT_MAX_RETRY_DELAY_MS = 60_000;
 const DEFAULT_WEBSOCKET_CONNECT_TIMEOUT_MS = 15_000;
+// 中文：Codex 后端的 SSE responses 端点接受 zstd 压缩请求体，与官方 Codex 客户端发送压缩请求所用端点相同。
 // The Codex backend accepts zstd-compressed request bodies on the SSE responses
 // endpoint (the same endpoint the official Codex client compresses against).
 const REQUEST_COMPRESSION_ZSTD_LEVEL = 3;
@@ -65,6 +67,7 @@ const CODEX_RESPONSE_STATUSES = new Set<CodexResponseStatus>([
 	"in_progress",
 ]);
 
+// 中文：类型。
 // ============================================================================
 // Types
 // ============================================================================
@@ -109,6 +112,7 @@ function assertSuccessfulOutput(output: AssistantMessage): asserts output is Suc
 	}
 }
 
+// 中文：重试辅助函数。
 // ============================================================================
 // Retry Helpers
 // ============================================================================
@@ -190,6 +194,7 @@ function normalizeTimeoutMs(value: number | undefined): number | undefined {
 	return Math.floor(value);
 }
 
+// 中文：请求压缩。
 // ============================================================================
 // Request Compression
 // ============================================================================
@@ -205,6 +210,7 @@ function loadNodeZlib(): typeof NodeZlib | null {
 	return (process as ProcessWithBuiltinModule).getBuiltinModule?.("node:zlib") ?? null;
 }
 
+// 中文：返回经 zstd 压缩的请求体字节；压缩不可用时返回 null，例如浏览器或 Vite 构建。返回 null 时，调用方回退为发送未压缩的 JSON。
 // Returns the zstd-compressed body bytes, or null when compression is
 // unavailable (browser/Vite builds). Callers fall back to sending the
 // uncompressed JSON when this returns null.
@@ -223,6 +229,7 @@ function compressRequestBodyZstd(bodyJson: string): Uint8Array | null {
 	}
 }
 
+// 中文：主流处理函数。
 // ============================================================================
 // Main Stream Function
 // ============================================================================
@@ -365,6 +372,8 @@ export const stream: StreamFunction<"openai-codex-responses", OpenAICodexRespons
 				}
 			}
 
+			// 中文：为 SSE 路径一次性压缩请求体。Codex 后端会解码 Content-Encoding: zstd；上面的 WebSocket 传输则发送未压缩的 JSON 帧
+			// ，与官方 Codex 客户端保持一致。
 			// Compress the request body once for the SSE path. The Codex backend
 			// decodes Content-Encoding: zstd; the WebSocket transport above sends the
 			// uncompressed JSON frame, matching the official Codex client.
@@ -374,6 +383,7 @@ export const stream: StreamFunction<"openai-codex-responses", OpenAICodexRespons
 			}
 			const sseBody: Uint8Array | string = compressedBody ?? bodyJson;
 
+			// 中文：使用带重试逻辑的请求处理限流和暂时性错误。
 			// Fetch with retry logic for rate limits and transient errors
 			let response: Response | undefined;
 			let lastError: Error | undefined;
@@ -424,6 +434,7 @@ export const stream: StreamFunction<"openai-codex-responses", OpenAICodexRespons
 						continue;
 					}
 
+					// 中文：最后一次尝试或遇到不可重试错误时，解析错误并生成易读消息。
 					// Parse error for friendly message on final attempt or non-retryable error
 					const fakeResponse = new Response(errorText, {
 						status: response.status,
@@ -438,6 +449,7 @@ export const stream: StreamFunction<"openai-codex-responses", OpenAICodexRespons
 						}
 					}
 					lastError = error instanceof Error ? error : new Error(String(error));
+					// 中文：网络错误可以重试。
 					// Network errors are retryable
 					if (
 						attempt < maxRetries &&
@@ -475,6 +487,7 @@ export const stream: StreamFunction<"openai-codex-responses", OpenAICodexRespons
 			stream.end();
 		} catch (error) {
 			for (const block of output.content) {
+				// 中文：流式临时缓冲区仅用于解析，绝不能持久化。
 				// Streaming scratch buffers are only used during parsing; never persist them.
 				delete (block as { partialJson?: string }).partialJson;
 				delete (block as { customInput?: unknown }).customInput;
@@ -512,6 +525,7 @@ export const streamSimple: StreamFunction<"openai-codex-responses", SimpleStream
 	} satisfies OpenAICodexResponsesOptions);
 };
 
+// 中文：请求构造。
 // ============================================================================
 // Request Building
 // ============================================================================
@@ -649,6 +663,7 @@ function resolveCodexWebSocketUrl(baseUrl?: string): string {
 	return url.toString();
 }
 
+// 中文：响应处理。
 // ============================================================================
 // Response Processing
 // ============================================================================
@@ -762,6 +777,7 @@ function normalizeCodexStatus(status: unknown): CodexResponseStatus | undefined 
 	return CODEX_RESPONSE_STATUSES.has(status as CodexResponseStatus) ? (status as CodexResponseStatus) : undefined;
 }
 
+// 中文：SSE 解析。
 // ============================================================================
 // SSE Parsing
 // ============================================================================
@@ -787,6 +803,7 @@ async function* parseSSE(response: Response, signal?: AbortSignal): AsyncGenerat
 				throw new Error("Request was aborted");
 			}
 			buffer += done ? decoder.decode() : decoder.decode(value, { stream: true });
+			// 中文：将 EOF 视为剩余 SSE 帧的结束标记。
 			// Treat EOF as terminating the residual SSE frame.
 			if (done && buffer.trim()) buffer += "\n\n";
 
@@ -828,6 +845,7 @@ async function* parseSSE(response: Response, signal?: AbortSignal): AsyncGenerat
 	}
 }
 
+// 中文：WebSocket 解析。
 // ============================================================================
 // WebSocket Parsing
 // ============================================================================
@@ -964,6 +982,7 @@ let _cachedWebsocket: WebSocketConstructor | null = null;
 async function getWebSocketConstructor(env?: ProviderEnv): Promise<WebSocketConstructor | null> {
 	if (!env && _cachedWebsocket) return _cachedWebsocket;
 
+	// 中文：Bun 不遵循 HTTP 代理环境变量，相关问题链接见原注释。待办：Bun 的 WebSocket 支持代理环境变量后移除此处理。
 	// bun doesn't respect http proxy envs, ref: https://github.com/oven-sh/bun/issues/15489
 	// TODO: remove this when bun supports proxy envs in websocket.
 	if (typeof process !== "undefined" && process.versions?.bun) {
@@ -1015,6 +1034,7 @@ function getWebSocketReadyState(socket: WebSocketLike): number | undefined {
 
 function isWebSocketReusable(socket: WebSocketLike): boolean {
 	const readyState = getWebSocketReadyState(socket);
+	// 中文：readyState 不可用时，假定运行时仍保持连接打开且可复用。
 	// If readyState is unavailable, assume the runtime keeps it open/reusable.
 	return readyState === undefined || readyState === 1;
 }
@@ -1486,6 +1506,8 @@ async function processWebSocketStream(
 	);
 	let keepConnection = true;
 	const useCachedContext = options?.transport === "websocket-cached" || options?.transport === "auto";
+	// 中文：ChatGPT Codex Responses 拒绝 store: true，要求 Store must be set to false。WebSocket 仍可通
+	// 过连接作用域内的 previous_response_id 状态继续对话。
 	// ChatGPT Codex Responses rejects `store: true` ("Store must be set to false").
 	// WebSocket continuation still works via connection-scoped previous_response_id state.
 	const fullBody = body;
@@ -1549,6 +1571,7 @@ async function processWebSocketStream(
 	}
 }
 
+// 中文：错误处理。
 // ============================================================================
 // Error Handling
 // ============================================================================
@@ -1580,6 +1603,7 @@ async function parseErrorResponse(response: Response): Promise<{ message: string
 	return { message, friendlyMessage };
 }
 
+// 中文：认证与请求头。
 // ============================================================================
 // Auth & Headers
 // ============================================================================
