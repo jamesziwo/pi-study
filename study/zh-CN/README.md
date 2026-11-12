@@ -10,6 +10,9 @@
 
 | 原始相对路径 | 中文阅读版 | 英文原文 |
 |---|---|---|
+| `packages/agent/docs/rpc.md` | [Facet 服务 RPC](packages/agent/docs/rpc.md) | [原文](../../packages/agent/docs/rpc.md) |
+| `packages/agent/docs/telemetry.md` | [调用上下文与遥测](packages/agent/docs/telemetry.md) | [原文](../../packages/agent/docs/telemetry.md) |
+| `packages/agent/benchmark/session/README.md` | [会话基准测试](packages/agent/benchmark/session/README.md) | [原文](../../packages/agent/benchmark/session/README.md) |
 | `.pi/prompts/cl.md` | [变更日志审计](.pi/prompts/cl.md) | [原文](../../.pi/prompts/cl.md) |
 | `.pi/prompts/deslop.md` | [简化已完成工作](.pi/prompts/deslop.md) | [原文](../../.pi/prompts/deslop.md) |
 | `.pi/prompts/is.md` | [GitHub Issue 分析](.pi/prompts/is.md) | [原文](../../.pi/prompts/is.md) |

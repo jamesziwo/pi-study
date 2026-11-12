@@ -145,6 +145,30 @@
       "sourceSha256": "6a888330bf974657751e09f5d375a9039872d59d6606fc217c5105c7eca51b1a",
       "title": "Subagent 示例",
       "translatedUnits": 77
+    },
+    {
+      "source": "packages/agent/docs/rpc.md",
+      "translation": "study/zh-CN/packages/agent/docs/rpc.md",
+      "sourceCommit": "32d6520b9ecc37c999384bec962fe7ec8a6c48d1",
+      "sourceSha256": "089e7c850c8772f8ba21533873bd05ef8f843bc94afa63b203fc1ac26d57e4ec",
+      "title": "Facet 服务 RPC",
+      "translatedUnits": 15
+    },
+    {
+      "source": "packages/agent/docs/telemetry.md",
+      "translation": "study/zh-CN/packages/agent/docs/telemetry.md",
+      "sourceCommit": "32d6520b9ecc37c999384bec962fe7ec8a6c48d1",
+      "sourceSha256": "31cd30ed04222de36ae002768ffde85db0a0dcf57aea3be6aad6bd8b2b4723c9",
+      "title": "调用上下文与遥测",
+      "translatedUnits": 14
+    },
+    {
+      "source": "packages/agent/benchmark/session/README.md",
+      "translation": "study/zh-CN/packages/agent/benchmark/session/README.md",
+      "sourceCommit": "32d6520b9ecc37c999384bec962fe7ec8a6c48d1",
+      "sourceSha256": "eccbaea04d574880b788495309230a952b1622bd6167b4e7cf2d5d8bfd6788c8",
+      "title": "会话基准测试",
+      "translatedUnits": 4
     }
   ]
 }
