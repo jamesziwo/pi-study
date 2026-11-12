@@ -26,6 +26,7 @@ import { transformMessages } from "./transform-messages.ts";
 const MISTRAL_TOOL_CALL_ID_LENGTH = 9;
 const MAX_MISTRAL_ERROR_BODY_CHARS = 4000;
 
+// 中文：Mistral API 的提供方专用选项。
 /**
  * Provider-specific options for the Mistral API.
  */
@@ -116,6 +117,7 @@ type MistralCompletionEvent = {
 	};
 };
 
+// 中文：从 Mistral 原生 Chat Completions 端点流式接收响应。
 /**
  * Stream responses from the native Mistral Chat Completions endpoint.
  */
@@ -162,6 +164,7 @@ export const stream: StreamFunction<"mistral-conversations", MistralOptions> = (
 			stream.end();
 		} catch (error) {
 			for (const block of output.content) {
+				// 中文：partialArgs 仅为流式处理的临时缓冲区，绝不能持久化。
 				// partialArgs is only a streaming scratch buffer; never persist it.
 				delete (block as { partialArgs?: string }).partialArgs;
 			}
@@ -175,6 +178,7 @@ export const stream: StreamFunction<"mistral-conversations", MistralOptions> = (
 	return stream;
 };
 
+// 中文：将与提供方无关的 SimpleStreamOptions 映射为 Mistral 选项。
 /**
  * Maps provider-agnostic `SimpleStreamOptions` to Mistral options.
  */
@@ -589,6 +593,7 @@ async function consumeChatStream(
 
 	for await (const event of mistralStream) {
 		const chunk = event.data;
+		// 中文：Mistral 流式返回的 CompletionChunk 携带 id 字段。保留第一个非空值，与 OpenAI 风格的流为每个响应暴露稳定标识符的方式一致。
 		// Mistral's streamed CompletionChunk carries an id field. Keep the first non-empty one,
 		// mirroring how OpenAI-style streaming exposes a stable response identifier per stream.
 		output.responseId ||= chunk.id;
@@ -738,6 +743,7 @@ async function consumeChatStream(
 		if (block.type !== "toolCall") continue;
 		const toolBlock = block as ToolCall & { partialArgs?: string };
 		toolBlock.arguments = parseStreamingJson<Record<string, unknown>>(toolBlock.partialArgs);
+		// 中文：原地完成最终处理并移除临时缓冲区，使回放只携带解析后的参数。
 		// Finalize in-place and strip the scratch buffer so replay only
 		// carries parsed arguments.
 		delete toolBlock.partialArgs;
