@@ -42,6 +42,7 @@ import {
 } from "./constrained-sampling.ts";
 import { transformMessages } from "./transform-messages.ts";
 
+// 中文：工具函数。
 // =============================================================================
 // Utilities
 // =============================================================================
@@ -66,6 +67,7 @@ function parseTextSignature(
 				return { id: parsed.id };
 			}
 		} catch {
+			// 中文：继续使用旧版纯字符串处理方式。
 			// Fall through to legacy plain-string handling.
 		}
 	}
@@ -131,6 +133,7 @@ export interface ConvertResponsesToolsOptions {
 	deferLoading?: boolean;
 }
 
+// 中文：消息转换。
 // =============================================================================
 // Message conversion
 // =============================================================================
@@ -162,6 +165,7 @@ export function convertResponsesMessages<TApi extends Api>(
 		const normalizedCallId = normalizeIdPart(callId);
 		const isForeignToolCall = source.provider !== model.provider || source.api !== model.api;
 		let normalizedItemId = isForeignToolCall ? buildForeignResponsesItemId(itemId) : normalizeIdPart(itemId);
+		// 中文：OpenAI Responses API 要求条目 ID 以 fc 开头。
 		// OpenAI Responses API requires item id to start with "fc"
 		if (!normalizedItemId.startsWith("fc_")) {
 			normalizedItemId = normalizeIdPart(`fc_${normalizedItemId}`);
@@ -229,6 +233,7 @@ export function convertResponsesMessages<TApi extends Api>(
 					const fallbackMessageId =
 						textBlockIndex === 0 ? `msg_pi_${msgIndex}` : `msg_pi_${msgIndex}_${textBlockIndex}`;
 					textBlockIndex++;
+					// 中文：OpenAI 要求 ID 最多为 64 个字符。
 					// OpenAI requires id to be max 64 characters
 					let msgId = parsedSignature?.id;
 					if (!msgId) {
@@ -250,6 +255,9 @@ export function convertResponsesMessages<TApi extends Api>(
 					const customInputProperty = options?.grammarToolInputProperties?.get(toolCall.name);
 					let itemId: string | undefined = itemIdRaw;
 
+					// 中文：对于来自不同模型的消息，将 id 设为 undefined，以避免配对校验。OpenAI 会跟踪哪些 fc_xxx ID 与 rs_xxx 推理条目配对；省略 id
+					//  可以避免触发该校验，与跨提供方的处理类似。将自定义工具调用作为 function_call 回放时，也应丢弃 ctc_* 等非 fc_* ID，因为
+					// function_call 条目 ID 必须采用 fc_* 格式。
 					// For different-model messages, set id to undefined to avoid pairing validation.
 					// OpenAI tracks which fc_xxx IDs were paired with rs_xxx reasoning items.
 					// By omitting the id, we avoid triggering that validation (like cross-provider does).
@@ -352,6 +360,7 @@ export function convertResponsesMessages<TApi extends Api>(
 	return messages;
 }
 
+// 中文：工具转换。
 // =============================================================================
 // Tool conversion
 // =============================================================================
@@ -395,6 +404,7 @@ export function convertResponsesTools(tools: readonly Tool[], options?: ConvertR
 	});
 }
 
+// 中文：流处理。
 // =============================================================================
 // Stream processing
 // =============================================================================
@@ -530,6 +540,9 @@ export async function processResponsesStream<TApi extends Api>(
 	const getOrCreateSlot = (outputIndex: number, item: ResponseOutputItem): ResponsesOutputSlot | undefined => {
 		return outputSlots.get(outputIndex) ?? createSlot(outputIndex, item);
 	};
+	// 中文：Azure OpenAI 可能在 response.output_item.done 中省略 reasoning.encrypted_content，只在
+	// response.completed.response.output 中提供。应从最终响应补全持久化的推理签名，使 store:false 模式下的多轮回放保持无状态。相
+	// 关问题链接见下方原注释。
 	// Azure OpenAI can omit reasoning.encrypted_content from response.output_item.done
 	// and provide it only in response.completed.response.output. Backfill the
 	// persisted reasoning signature from the terminal response to keep store:false
@@ -563,6 +576,7 @@ export async function processResponsesStream<TApi extends Api>(
 			const cachedTokens = inputDetails?.cached_tokens || 0;
 			const cacheWriteTokens = inputDetails?.cache_write_tokens || 0;
 			output.usage = {
+				// 中文：OpenAI 的 input_tokens 包含缓存读取和缓存写入的 token，因此两者都要减去。
 				// OpenAI includes cached and cache-write tokens in input_tokens, so subtract both.
 				input: Math.max(0, (response.usage.input_tokens || 0) - cachedTokens - cacheWriteTokens),
 				output: response.usage.output_tokens || 0,
@@ -580,6 +594,7 @@ export async function processResponsesStream<TApi extends Api>(
 				: (response?.service_tier ?? options.serviceTier);
 			options.applyServiceTierPricing(output.usage, serviceTier);
 		}
+		// 中文：将状态映射为停止原因。对于不完整响应，保留提供方的具体原因，以区分输出上限截断和内容过滤。
 		// Map status to stop reason. For incomplete responses, retain the provider's
 		// specific reason so max-output truncation and content filtering stay distinct.
 		const status = response?.status;
@@ -713,6 +728,7 @@ export async function processResponsesStream<TApi extends Api>(
 			) {
 				slot.block.arguments = parseStreamingJson(item.arguments || slot.block.partialJson || "{}");
 				if (item.namespace !== undefined) slot.block.namespace = item.namespace;
+				// 中文：原地完成最终处理并移除临时缓冲区，使回放只携带解析后的参数。
 				// Finalize in-place and strip the scratch buffer so replay only
 				// carries parsed arguments.
 				delete slot.block.partialJson;
@@ -781,6 +797,7 @@ function mapStopReason(
 		case "failed":
 		case "cancelled":
 			return { stopReason: "error" };
+		// 中文：这两个状态的处理有些不太合理……
 		// These two are wonky ...
 		case "in_progress":
 		case "queued":

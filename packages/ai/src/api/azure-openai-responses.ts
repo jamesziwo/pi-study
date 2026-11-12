@@ -23,6 +23,7 @@ import { buildBaseOptions } from "./simple-options.ts";
 
 const DEFAULT_AZURE_API_VERSION = "v1";
 const AZURE_TOOL_CALL_PROVIDERS = new Set(["openai", "openai-codex", "opencode", "azure-openai-responses"]);
+// 中文：OpenAI Responses 不接受小于 16 的 max_output_tokens；相关问题链接见下方原注释。
 // OpenAI Responses rejects max_output_tokens below 16: https://github.com/earendil-works/pi/issues/6265
 const OPENAI_RESPONSES_MIN_OUTPUT_TOKENS = 16;
 
@@ -53,6 +54,7 @@ function formatAzureOpenAIError(error: unknown): string {
 	return formatProviderError(normalizeProviderError(error), "Azure OpenAI API error");
 }
 
+// 中文：Azure OpenAI Responses 专用选项。
 // Azure OpenAI Responses-specific options
 export interface AzureOpenAIResponsesOptions extends StreamOptions {
 	reasoningEffort?: "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
@@ -64,6 +66,7 @@ export interface AzureOpenAIResponsesOptions extends StreamOptions {
 	azureDeploymentName?: string;
 }
 
+// 中文：Azure OpenAI Responses API 的生成函数。
 /**
  * Generate function for Azure OpenAI Responses API
  */
@@ -74,6 +77,7 @@ export const stream: StreamFunction<"azure-openai-responses", AzureOpenAIRespons
 ): AssistantMessageEventStream => {
 	const stream = new AssistantMessageEventStream();
 
+	// 中文：启动异步处理。
 	// Start async processing
 	(async () => {
 		const deploymentName = resolveDeploymentName(model, options);
@@ -97,6 +101,7 @@ export const stream: StreamFunction<"azure-openai-responses", AzureOpenAIRespons
 		};
 
 		try {
+			// 中文：创建 Azure OpenAI 客户端。
 			// Create Azure OpenAI client
 			const apiKey = options?.apiKey;
 			if (!apiKey) {
@@ -146,6 +151,7 @@ export const stream: StreamFunction<"azure-openai-responses", AzureOpenAIRespons
 		} catch (error) {
 			for (const block of output.content) {
 				delete (block as { index?: number }).index;
+				// 中文：流式处理的临时缓冲区仅用于解析，绝不能持久化。
 				// Streaming scratch buffers are only used during parsing; never persist them.
 				delete (block as { partialJson?: string }).partialJson;
 				delete (block as { customInput?: unknown }).customInput;
@@ -198,6 +204,8 @@ function normalizeAzureBaseUrl(baseUrl: string): string {
 		url.hostname.endsWith(".ai.azure.com");
 	const normalizedPath = url.pathname.replace(/\/+$/, "");
 
+	// 中文：确保 Azure 主机使用 /openai/v1 作为基础路径，使 AzureOpenAI SDK 能正确追加 /deployments/<model>/... 和
+	//  ?api-version=v1。
 	// Ensure Azure hosts have /openai/v1 as base path so the AzureOpenAI SDK
 	// can append /deployments/<model>/... and ?api-version=v1 correctly.
 	if (
@@ -329,6 +337,7 @@ function buildParams(
 		}
 	}
 
+	// 中文：最后应用自定义键，使其覆盖已明确设置的请求字段。
 	// Last so custom keys override the named request fields.
 	if (options?.samplingParams) {
 		Object.assign(params, options.samplingParams);

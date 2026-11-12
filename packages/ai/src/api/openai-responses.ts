@@ -29,6 +29,7 @@ import { convertResponsesMessages, convertResponsesTools, processResponsesStream
 import { buildBaseOptions } from "./simple-options.ts";
 
 const OPENAI_TOOL_CALL_PROVIDERS = new Set(["openai", "openai-codex", "opencode"]);
+// 中文：OpenAI Responses 不接受小于 16 的 max_output_tokens；相关问题链接见下方原注释。
 // OpenAI Responses rejects max_output_tokens below 16: https://github.com/earendil-works/pi/issues/6265
 const OPENAI_RESPONSES_MIN_OUTPUT_TOKENS = 16;
 
@@ -51,6 +52,7 @@ function detectSessionAffinityFormat(model: Pick<Model<"openai-responses">, "pro
 	return model.provider === "openrouter" || model.baseUrl.includes("openrouter.ai") ? "openrouter" : "openai";
 }
 
+// 中文：解析缓存保留偏好，默认使用 short，并读取 PI_CACHE_RETENTION 以兼容旧配置。
 /**
  * Resolve cache retention preference.
  * Defaults to "short" and uses PI_CACHE_RETENTION for backward compatibility.
@@ -102,6 +104,7 @@ function formatOpenAIResponsesError(error: unknown): string {
 	return formatProviderError(normalizeProviderError(error), "OpenAI API error");
 }
 
+// 中文：OpenAI Responses 专用选项。
 // OpenAI Responses-specific options
 export interface OpenAIResponsesOptions extends StreamOptions {
 	reasoningEffort?: "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
@@ -110,6 +113,7 @@ export interface OpenAIResponsesOptions extends StreamOptions {
 	toolChoice?: ResponseCreateParamsStreaming["tool_choice"];
 }
 
+// 中文：OpenAI Responses API 的生成函数。
 /**
  * Generate function for OpenAI Responses API
  */
@@ -120,6 +124,7 @@ export const stream: StreamFunction<"openai-responses", OpenAIResponsesOptions> 
 ): AssistantMessageEventStream => {
 	const stream = new AssistantMessageEventStream();
 
+	// 中文：启动异步处理。
 	// Start async processing
 	(async () => {
 		const output: AssistantMessage = {
@@ -141,6 +146,7 @@ export const stream: StreamFunction<"openai-responses", OpenAIResponsesOptions> 
 		};
 
 		try {
+			// 中文：创建 OpenAI 客户端。
 			// Create OpenAI client
 			const apiKey = getClientApiKey(model.provider, options?.apiKey, options?.headers);
 			const cacheRetention = resolveCacheRetention(options?.cacheRetention, options?.env);
@@ -194,6 +200,7 @@ export const stream: StreamFunction<"openai-responses", OpenAIResponsesOptions> 
 		} catch (error) {
 			for (const block of output.content) {
 				delete (block as { index?: number }).index;
+				// 中文：流式处理的临时缓冲区仅用于解析，绝不能持久化。
 				// Streaming scratch buffers are only used during parsing; never persist them.
 				delete (block as { partialJson?: string }).partialJson;
 				delete (block as { customInput?: unknown }).customInput;
@@ -258,6 +265,7 @@ function createClient(
 		}
 	}
 
+	// 中文：最后合并选项中的请求头，使其能够覆盖默认值。
 	// Merge options headers last so they can override defaults
 	if (optionsHeaders) {
 		Object.assign(headers, optionsHeaders);
@@ -352,6 +360,7 @@ function buildParams(
 		if (model.provider === "xai") params.include = ["reasoning.encrypted_content"];
 	}
 
+	// 中文：最后应用自定义键，使其覆盖已明确设置的请求字段。
 	// Last so custom keys override the named request fields.
 	if (options?.samplingParams) {
 		Object.assign(params, options.samplingParams);

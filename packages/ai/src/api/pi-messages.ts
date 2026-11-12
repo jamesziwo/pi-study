@@ -1,3 +1,6 @@
+// 中文：pi-messages API 实现。直接使用 Pi 自身的消息协议向后端发起流式请求：通过一次 POST 将 { model, context, options
+// } 发送到 <baseUrl>/messages，响应为包含序列化助手消息事件及最终 done/error 事件的 SSE 流。Radius 网关使用该传输协议；任何实现
+// 此协议的后端都可使用，例如在 models.json 中配置 api 为 pi-messages 的自定义提供方。
 /**
  * pi-messages API implementation.
  *
@@ -31,6 +34,7 @@ import { getProviderEnvValue } from "../utils/provider-env.ts";
 export interface PiMessagesOptions extends StreamOptions {
 	reasoning?: ThinkingLevel;
 	toolChoice?: "auto" | "none" | "required" | { type: "function"; function: { name: string } };
+	// 中文：向后端请求调试元数据，例如路由响应头。
 	/** Ask the backend for debug metadata (e.g. routing response headers). */
 	debug?: boolean;
 }
@@ -38,6 +42,7 @@ export interface PiMessagesOptions extends StreamOptions {
 type PiMessagesUsage = AssistantMessage["usage"];
 type PiMessagesStopReason = AssistantMessage["stopReason"];
 
+// 中文：服务端消息改写（例如网关策略）的影响摘要。
 /** Impact summary of a server-side message rewrite (e.g. a gateway policy). */
 export type PiMessagesRewriteImpact = {
 	policyId: string;
@@ -48,6 +53,7 @@ export type PiMessagesRewriteImpact = {
 	systemPromptChanged: boolean;
 };
 
+// 中文：pi-messages 后端发送的序列化助手消息事件。
 /** Serialized assistant-message event as sent by a pi-messages backend. */
 export type PiMessagesEvent =
 	| { type: "start" }
@@ -346,6 +352,7 @@ function resolveCacheRetention(cacheRetention?: CacheRetention, env?: ProviderEn
 	if (cacheRetention) {
 		return cacheRetention;
 	}
+	// 中文：未设置时使用后端默认值；这里只映射通过旧版环境变量显式启用的选项。
 	// Backend defaults apply when unset; only the legacy env opt-in is mapped.
 	return getProviderEnvValue("PI_CACHE_RETENTION", env) === "long" ? "long" : undefined;
 }
