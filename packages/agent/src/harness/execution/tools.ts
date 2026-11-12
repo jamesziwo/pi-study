@@ -5,6 +5,7 @@ import type { JsonValue } from "../session/types.ts";
 import type { AgentHarnessTool, AgentHarnessToolInvocation, AgentHarnessToolUpdateCallback } from "../types.ts";
 import type { Gate } from "./effect-gate.ts";
 
+// 中文：工具已存在、准备后的参数已通过校验的工具调用。
 /** A tool call whose tool exists and whose prepared arguments passed validation. */
 export interface PreparedToolCall<TContext extends object | undefined> {
 	toolCall: AgentToolCall;
@@ -12,6 +13,7 @@ export interface PreparedToolCall<TContext extends object | undefined> {
 	args: Record<string, JsonValue>;
 }
 
+// 中文：未跨越外部工具副作用边界而直接构造的结果。
 /** Synthetic result produced without crossing the external tool-effect boundary. */
 export interface ImmediateToolOutcome {
 	kind: "immediate";
@@ -21,12 +23,14 @@ export interface ImmediateToolOutcome {
 	terminate: boolean;
 }
 
+// 中文：工具执行前钩子管线的聚合决策。
 /** Aggregated decision from the before-tool hook pipeline. */
 export interface BeforeToolDecision {
 	args?: Record<string, JsonValue>;
 	block?: { reason: string; terminate?: boolean };
 }
 
+// 中文：已准备好且获准发布持久化意图并执行的调用。
 /** A prepared call cleared for durable intent publication and execution. */
 export interface ClearedToolCall<TContext extends object | undefined> {
 	toolCall: AgentToolCall;
@@ -34,12 +38,14 @@ export interface ClearedToolCall<TContext extends object | undefined> {
 	args: Record<string, JsonValue>;
 }
 
+// 中文：工具执行后补丁应用之前的第二阶段原始工具输出。
 /** Raw phase-two tool output before after-tool patching. */
 export interface ExecutedToolCall {
 	result: AgentToolResult<unknown>;
 	isError: boolean;
 }
 
+// 中文：工具执行后钩子管线的聚合补丁。
 /** Aggregated patch from the after-tool hook pipeline. */
 export interface AfterToolPatch {
 	content?: AgentToolResult<unknown>["content"];
@@ -49,6 +55,7 @@ export interface AfterToolPatch {
 	terminate?: boolean;
 }
 
+// 中文：已准备好转为持久化工具结果消息的最终工具输出。
 /** Final tool output ready to become a durable tool-result message. */
 export interface FinalizedToolCall {
 	toolCall: AgentToolCall;
@@ -74,6 +81,7 @@ function immediateError(toolCall: AgentToolCall, message: string, terminate = fa
 	};
 }
 
+// 中文：解析工具，执行其确定性的参数准备，并校验结果。
 /** Resolve a tool, apply its deterministic argument preparation, and validate the result. */
 export function prepareToolCall<TContext extends object | undefined>(
 	call: AgentToolCall,
@@ -97,6 +105,7 @@ export function prepareToolCall<TContext extends object | undefined>(
 	}
 }
 
+// 中文：应用显式钩子决策，并重新校验替换后的参数。
 /** Apply an explicit hook decision and revalidate replacement arguments. */
 export function applyBeforeToolDecision<TContext extends object | undefined>(
 	prepared: PreparedToolCall<TContext>,
@@ -121,6 +130,7 @@ export function applyBeforeToolDecision<TContext extends object | undefined>(
 	}
 }
 
+// 中文：执行一次获准的外部工具副作用，将预期内的工具抛错转换为错误输出。
 /** Execute one cleared external tool effect, converting expected tool throws to error output. */
 export function executeToolCall<TContext extends object | undefined>(
 	call: ClearedToolCall<TContext>,
@@ -157,6 +167,7 @@ export function executeToolCall<TContext extends object | undefined>(
 	});
 }
 
+// 中文：逐字段应用工具执行后补丁。
 /** Apply an after-tool patch field by field. */
 export function finalizeToolCall<TContext extends object | undefined>(
 	call: ClearedToolCall<TContext>,
@@ -180,6 +191,7 @@ export function finalizeToolCall<TContext extends object | undefined>(
 	};
 }
 
+// 中文：重建暂存的对话记录消息所表示的规范工具结果。
 /** Reconstruct the canonical tool result represented by a staged transcript message. */
 export function toolResultFromMessage(
 	message: ToolResultMessage<unknown>,
@@ -194,6 +206,7 @@ export function toolResultFromMessage(
 	};
 }
 
+// 中文：将最终工具输出转换为面向提供方的对话记录消息。
 /** Convert finalized tool output to the provider-facing transcript message. */
 export function createToolResultMessage(call: FinalizedToolCall): ToolResultMessage {
 	return {

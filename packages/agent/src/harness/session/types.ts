@@ -55,6 +55,7 @@ export interface CustomEntry extends EntryBase {
 	data?: JsonValue;
 }
 
+// 中文：将应用定义的自定义条目转换为模型上下文。
 /** Convert an application-defined custom entry into model context. */
 export type EntryProjector = (
 	entry: CustomEntry,
@@ -63,6 +64,7 @@ export type EntryProjector = (
 
 export type Entry = MessageEntry | CompactionEntry | BranchSummaryEntry | CustomEntry;
 
+// 中文：在存储层分配序号和时间戳之前提供给事务的条目。
 /** Entry supplied to a transaction before storage assigns sequence and timestamp. */
 export type NewEntry<TEntry extends Entry = Entry> = TEntry extends Entry ? Omit<TEntry, "seq" | "timestamp"> : never;
 
@@ -104,6 +106,7 @@ export interface OperationError {
 
 export type TerminalStatus = "completed" | "declined" | "aborted" | "failed";
 
+// 中文：由一次终态事务写入、生命周期与 lane 一致的不可变观察记录。
 /** Immutable lane-lived observation record written by one terminal transaction. */
 export interface OperationResultRecord {
 	operationId: string;
@@ -120,6 +123,7 @@ export type Continuation =
 	| { kind: "need_assistant"; overflowRecoveryUsed: boolean }
 	| { kind: "may_finish"; includeFinalAssistant: boolean };
 
+// 中文：检查点载荷；扁平的叶节点字面量替代旧的嵌套阶段标签。
 /** Checkpoint payload; the flat leaf literal replaces the old nested phase tag. */
 export interface CheckpointData {
 	continuation: Continuation;
@@ -149,6 +153,7 @@ export interface GenerationContext {
 }
 
 interface ToolCallSource {
+	// 中文：助手消息完整 content 数组中从零开始的索引，不是过滤后的工具调用序号。
 	/** Zero-based index in the assistant message's complete content array, not a filtered tool-call ordinal. */
 	sourceIndex: number;
 	resultEntryId: string;
@@ -176,6 +181,8 @@ export interface SummaryContext {
 	retryPolicy: NormalizedRetryPolicy;
 }
 
+// 中文：持久化操作状态是一个扁平联合类型，每个调度叶节点使用一个不区分操作族的判别字段。ToolBatch/ToolCall 仍保留为嵌套子集合状态机，取消则通过
+// Control 独立表达。
 /*
  * Durable operation state is one flat union with one family-neutral discriminator
  * per dispatcher leaf. ToolBatch/ToolCall remain the nested child collection state
@@ -193,12 +200,14 @@ export interface RunSettings {
 	toolExecution: "sequential" | "parallel";
 }
 
+// 中文：每个操作叶节点携带的统一作用域。
 /** Uniform scope carried by every operation leaf. */
 export interface OperationScope extends Cancellable {
 	settings: RunSettings;
 	latestAssistantEntryId: string | null;
 }
 
+// 中文：各重试等待叶节点共用的退避数据。
 /** Shared backoff data for every retry-wait leaf. */
 export interface RetryWait {
 	nextAttempt: number;
@@ -307,11 +316,13 @@ export interface SummaryRetryWaitOperation extends OperationScope, SummaryGenera
 
 export interface NavigationReadyToCommitOperation extends OperationScope {
 	at: "navigation.ready_to_commit";
+	// 中文：不生成摘要的导航可以指向分支根节点（null）。
 	/** Unsummarized navigation may target the branch root (null). */
 	targetId: string | null;
 	label?: string;
 }
 
+// 中文：扁平的持久化操作状态：恰好包含 13 个不区分操作族的调度叶节点。
 /** Flat durable operation state: exactly 13 family-neutral dispatcher leaves. */
 export type OperationState =
 	| StartingOperation
@@ -330,6 +341,7 @@ export type OperationState =
 
 export type OperationAt = OperationState["at"];
 
+// 中文：构造后继叶节点时，仅复制统一的操作作用域。
 /** Copy only the uniform operation scope when constructing a successor leaf. */
 export function operationScopeOf(state: OperationState): OperationScope {
 	return {
@@ -401,6 +413,7 @@ export interface CommitResult {
 	firstSeq: number;
 	seqs: number[];
 	timestamp: number;
+	// 中文：本次提交应用后立即得到的会话累计统计。
 	/** Session totals immediately after this commit was applied. */
 	stats: SessionStats;
 }
@@ -501,18 +514,23 @@ export interface SessionReader {
 		options: ListReadOptions | undefined,
 		context: Context,
 	): Promise<ListElement<T>[]>;
+	// 中文：在此读取能力仍有效期间，从显式指定的条目开始扫描分支。
 	/** Scan a branch from an explicit entry while this reader capability remains valid. */
 	scanBranch(query: StorageBranchScan, context: Context): Promise<Entry[]>;
 }
 
+// 中文：单个 Session 的独占、无需键的修改屏障。
 /** Exclusive keyless mutation barrier for one Session. */
 export interface SessionMutation extends SessionReader {
+	// 中文：只能尝试提交零次或一次，第二次尝试会拒绝。
 	/** Exactly zero or one commit attempt. A second attempt rejects. */
 	commit(writes: Write[], context: Context): Promise<CommitResult>;
+	// 中文：等待已发起的提交尝试结束，使能力失效，并释放屏障。
 	/** Wait for any commit attempt, invalidate the capability, and release the barrier. */
 	end(context: Context): Promise<void>;
 }
 
+// 中文：仅在回调作用域内有效的修改能力，无权释放其 Session 屏障。
 /** Callback-scoped mutation capability without authority to release its Session barrier. */
 export type SessionMutator = Omit<SessionMutation, "end">;
 
@@ -539,6 +557,8 @@ export interface Session<TMetadata extends SessionMetadata = SessionMetadata> ex
 	branch(name: string, context: Context): Promise<Branch | undefined>;
 	createBranch(name: string, at: string | null, context: Context): Promise<Branch>;
 	beginMutation(context: Context): Promise<SessionMutation>;
+	// 中文：在 Session 串行修改队列上运行的受信任独占回调。若从回调内调用公开的 Session 写方法，该写操作会排在回调之后；因此等待这个嵌套写操作会死锁。应使用传
+	// 入的 mutator 完成本回调唯一的一次提交。
 	/**
 	 * Trusted exclusive callback over the Session mutation line. Calling a public Session writer from
 	 * this callback queues it behind the callback; awaiting that nested writer therefore deadlocks.
@@ -561,30 +581,38 @@ export interface SessionCreateOptions {
 
 export type ForkOptions =
 	| {
+			// 中文：从配置完整的源 AgentLane 复制一条路径，沿用相同 Branch 名称、复制配置，并建立新的空闲 lane 状态。
 			/**
 			 * Copy one path from a complete configured source AgentLane under the same
 			 * Branch name, with copied configuration and fresh idle lane state.
 			 */
 			scope: "branch";
+			// 中文：要复制的源 Branch。
 			/** Source Branch to copy. */
 			branch: string;
+			// 中文：位于源 Branch 当前 tip 祖先链上的条目，默认当前 tip。
 			/** Entry on the source Branch's current tip ancestry. Defaults to the current tip. */
 			entryId?: string;
+			// 中文：分叉结果是否包含选中条目，或只复制到其父节点。默认包含选中条目。
 			/**
 			 * Whether the fork includes the selected entry or stops at its parent.
 			 * Defaults to including the selected entry.
 			 */
 			position?: "before" | "at";
+			// 中文：可选的目标会话 id。
 			/** Optional destination session id. */
 			id?: string;
 	  }
 	| {
+			// 中文：复制整棵对话树以及每个 Branch 的 tip。每个已配置的 AgentLane 复制配置并建立新的空闲状态；纯数据 Branch 仍保持纯数据。排除
+			// operation、pending、result 和 usage 状态。
 			/**
 			 * Copy the whole conversation tree and every Branch tip. Each configured
 			 * AgentLane copies configuration plus fresh idle state; data-only Branches
 			 * remain data-only. Operation/pending/result/usage state is excluded.
 			 */
 			scope: "tree";
+			// 中文：可选的目标会话 id。
 			/** Optional destination session id. */
 			id?: string;
 	  };

@@ -15,12 +15,14 @@ import type { SettledAssistantMessage } from "../session/types.ts";
 import type { AgentHarnessStreamOptions } from "../types.ts";
 import { AbortRequested } from "./effect-gate.ts";
 
+// 中文：在读取提供方响应体之前捕获的 HTTP 响应元数据。
 /** HTTP response metadata captured before the provider response body is consumed. */
 export interface AssistantResponseMetadata {
 	status?: number;
 	headers?: Record<string, string>;
 }
 
+// 中文：单个助手流在进程本地的生命周期观察者。
 /** Process-local lifecycle observer for one assistant stream. */
 export interface AssistantStreamObserver {
 	start(
@@ -32,6 +34,7 @@ export interface AssistantStreamObserver {
 	end(message: SettledAssistantMessage, context: Context): void | Promise<void>;
 }
 
+// 中文：一个已经获准的助手提供方请求所需的可执行输入。
 /** Executable inputs for one already-approved assistant provider request. */
 export interface HarnessAssistantStreamConfig {
 	model: Model<Api>;
@@ -132,6 +135,7 @@ export async function consumeAssistantStream(
 	return finalMessage;
 }
 
+// 中文：流式处理一个助手响应，不修改调用方的消息列表。
 /** Stream one assistant response without mutating the caller's message list. */
 export async function streamHarnessAssistant(
 	messages: AgentMessage[],

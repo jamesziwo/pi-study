@@ -38,8 +38,10 @@ export type ReadImageProcessor = (
 ) => Promise<ReadImageProcessorResult>;
 
 export interface ReadToolOptions {
+	// 中文：注入的图像处理器是否应缩放图像，默认 true。
 	/** Whether an injected image processor should resize images. Default: true. */
 	autoResizeImages?: boolean;
+	// 中文：可选的图像转换或缩放实现。
 	/** Optional image conversion/resizing implementation. */
 	imageProcessor?: ReadImageProcessor;
 }

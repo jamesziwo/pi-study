@@ -1,3 +1,4 @@
+// 中文：取消先于副作用准入生效时，用于预期内部控制流的错误。
 /** Expected internal control flow when cancellation wins effect admission. */
 export class AbortRequested extends Error {
 	readonly cancellation: Promise<void>;
@@ -9,12 +10,14 @@ export class AbortRequested extends Error {
 	}
 }
 
+// 中文：面向执行过程、用于一次 drive 执行的同步准入能力。
 /** Procedure-facing synchronous admission capability for one drive pass. */
 export interface Gate {
 	readonly signal: AbortSignal;
 	admit<T>(invoke: () => T): T;
 }
 
+// 中文：面向所有者、用于一次 drive 执行的生命周期控制。
 /** Owner-facing lifecycle controls for one drive pass. */
 export interface GateControl {
 	beginAbort(cancellation: Promise<void>): void;
@@ -27,6 +30,7 @@ type GateState =
 	| { status: "aborting"; cancellation: Promise<void> }
 	| { status: "closed"; error: Error };
 
+// 中文：为同一个副作用准入门创建分别面向执行过程和所有者的视图。
 /** Create separate procedure-facing and owner-facing views of one effect gate. */
 export function createGate(): { gate: Gate; control: GateControl } {
 	let state: GateState = { status: "open" };

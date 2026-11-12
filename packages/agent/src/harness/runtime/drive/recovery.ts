@@ -40,6 +40,7 @@ function interruptedAssistantMessage(
 		: { ...partial, usage: ZERO_USAGE, stopReason: "error", errorMessage: warning };
 }
 
+// 中文：根据孤立助手请求已提交的有界帧前缀将其收尾，不再次调用提供方。
 /** Settle an orphaned assistant request from its bounded committed frame prefix without another provider call. */
 export async function recoverAssistantGeneration<TContext extends object | undefined>(
 	lane: Lane<TContext>,
@@ -83,6 +84,7 @@ export async function recoverAssistantGeneration<TContext extends object | undef
 	return publishResponse(lane, drive, generation, message, { recovery: true });
 }
 
+// 中文：沿用预留 id，构造结果以结束一个已取消且失去执行者的助手请求或延迟副作用。
 /** Synthetically settle one cancelled orphaned assistant or deferred effect under its reserved ids. */
 export async function recoverCancelledAssistantEffect<TContext extends object | undefined>(
 	lane: Lane<TContext>,

@@ -21,6 +21,7 @@ import {
 } from "./boundary.ts";
 import { prepareCompactionThreshold } from "./structural.ts";
 
+// 中文：执行 before_run 钩子并提交初始检查点。
 /** Consume before_run and commit the initial checkpoint. */
 export async function startRun<TContext extends object | undefined>(
 	lane: Lane<TContext>,
@@ -91,6 +92,7 @@ export async function startRun<TContext extends object | undefined>(
 	return result.kind === "cancel_requested" ? { kind: "continue" } : result.value;
 }
 
+// 中文：最多通过一次提交推进一个持久化运行边界。
 /** Advance one durable run boundary with at most one commit. */
 export async function runCheckpoint<TContext extends object | undefined>(
 	lane: Lane<TContext>,

@@ -4,6 +4,7 @@ import type { Context } from "./context.ts";
 type UntypedEventListener = (event: HarnessEvent, context: Context) => void | Promise<void>;
 type ResnapshotCapture<T> = (context: Context, markBoundary: () => void) => Promise<T>;
 
+// 中文：被动式 Harness 事件总线，隔离各处理器的失败。
 /** Passive harness event bus with isolated handler failures. */
 export class HarnessEventBus implements Events {
 	private readonly listeners = new Map<HarnessEventType, Set<UntypedEventListener>>();
@@ -31,6 +32,7 @@ export class HarnessEventBus implements Events {
 		return this.emitBatch([event], context);
 	}
 
+	// 中文：绑定当前接收者，并将一批连续事件追加到全局投递队列末尾。
 	/** Bind current recipients and append one contiguous batch to the global delivery tail. */
 	emitBatch(events: readonly HarnessEvent[], context: Context): Promise<void> {
 		if (this.closedError !== undefined || events.length === 0) return Promise.resolve();

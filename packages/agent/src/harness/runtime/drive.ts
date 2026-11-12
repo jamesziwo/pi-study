@@ -25,6 +25,7 @@ function currentOperation<TContext extends object | undefined>(lane: Lane<TConte
 	return operation;
 }
 
+// 中文：通过直接执行持久化过程推进一次已安装的 drive，直到操作结束或进入持久化等待。
 /** Drive one installed pass through direct durable procedures until settlement or a durable wait. */
 export async function driveOperation<TContext extends object | undefined>(
 	lane: Lane<TContext>,

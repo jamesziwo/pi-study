@@ -74,6 +74,7 @@ import type {
 	Skill,
 } from "./types.ts";
 
+// 中文：仅为便于观察而提供的暂停运行信息，在 M8 公开 drive 接口时构造。
 /** Convenience-only suspended run observation, constructed when M8 exposes public drive. */
 export interface SuspendedRun {
 	operationId: string;
@@ -405,8 +406,10 @@ type LaneWatchSourceEvent =
 	| Extract<HarnessEvent, { type: "config_update"; property: "model" | "thinkingLevel" | "activeTools" }>
 	| Omit<Extract<HarnessEvent, { type: "message_update" }>, "event">;
 
+// 中文：发布给远端对话记录消费者的严格 JSON 快照表示。
 /** Strict-JSON snapshot representation published to remote transcript consumers. */
 export type LaneTranscriptSnapshot = JsonRepresentation<LaneSnapshot>;
+// 中文：发布给远端对话记录消费者、与 reducer 相关的严格 JSON Harness 事件。
 /** Reducer-relevant strict-JSON Harness events published to remote transcript consumers. */
 export type LaneWatchEvent = JsonRepresentation<LaneWatchSourceEvent>;
 
@@ -618,5 +621,6 @@ export interface AgentHarnessConstructor {
 	): Promise<{ harness: AgentHarness<TContext>; open: OpenOperation[] }>;
 }
 
+// 中文：将可持久化 Harness 连接到一个已打开会话的运行时构造器。
 /** Runtime constructor for attaching the durable harness to one open session. */
 export const AgentHarness = { create: createAgentHarness } satisfies AgentHarnessConstructor;

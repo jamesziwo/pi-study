@@ -26,6 +26,7 @@ async function getMutationQueueKey(env: ExecutionEnv, path: string, context: Con
 	throw canonicalPath.error;
 }
 
+// 中文：将同一执行环境内、针对同一规范路径的文件修改串行化。
 /** Serialize file mutations targeting the same environment and canonical path. */
 export async function withFileMutationQueue<T>(
 	env: ExecutionEnv,

@@ -11,6 +11,7 @@ interface HookRegistration {
 
 type HookErrorReporter = (error: Error, hook: HookName, lane: string, context: Context) => void | Promise<void>;
 
+// 中文：有序的 Harness 钩子注册表及聚合执行器。
 /** Ordered harness hook registry and aggregate runner. */
 export class HookRegistry implements Hooks {
 	private readonly registrations = new Map<HookName, HookRegistration[]>();
@@ -40,6 +41,7 @@ export class HookRegistry implements Hooks {
 		return (this.registrations.get(name)?.length ?? 0) !== 0;
 	}
 
+	// 中文：同步通过副作用准入门后，调用一个已受理操作的聚合钩子处理。
 	/** Invoke one accepted-operation aggregate after synchronously passing its effect gate. */
 	runWithGate<TName extends HookName>(
 		name: TName,
@@ -54,6 +56,7 @@ export class HookRegistry implements Hooks {
 		});
 	}
 
+	// 中文：调用聚合工具钩子，并为每个已注册处理器建立一个遥测 span。
 	/** Invoke a tool-hook aggregate with one telemetry span per registered handler. */
 	runToolWithGate<TName extends "before_tool" | "after_tool">(
 		name: TName,

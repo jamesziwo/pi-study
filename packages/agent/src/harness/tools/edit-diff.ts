@@ -1,3 +1,4 @@
+// 中文：edit 等工具共用的差异计算辅助函数。
 /**
  * Shared diff computation utilities for the edit and similar tools.
  */
@@ -20,6 +21,8 @@ export function restoreLineEndings(text: string, ending: "\r\n" | "\n"): string 
 	return ending === "\r\n" ? text.replace(/\n/g, "\r\n") : text;
 }
 
+// 中文：为模糊匹配规范化文本，逐步进行以下转换：去除各行末尾空白；将弯引号规范化为对应 ASCII 引号；将 Unicode 破折号或连字符规范化为 ASCII 连字符；将
+// 特殊 Unicode 空格规范化为普通空格。
 /**
  * Normalize text for fuzzy matching. Applies progressive transformations:
  * - Strip trailing whitespace from each line
@@ -31,18 +34,25 @@ export function normalizeForFuzzyMatch(text: string): string {
 	return (
 		text
 			.normalize("NFKC")
+			// 中文：去除每行末尾空白。
 			// Strip trailing whitespace per line
 			.split("\n")
 			.map((line) => line.trimEnd())
 			.join("\n")
+			// 中文：弯单引号转换为 ASCII 单引号 '。
 			// Smart single quotes → '
 			.replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+			// 中文：弯双引号转换为 ASCII 双引号 "。
 			// Smart double quotes → "
 			.replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+			// 中文：各种破折号或连字符转换为 -：U+2010 连字符、U+2011 不换行连字符、U+2012 数字宽度破折号、U+2013 短破折号、U+2014 长破折号、
+			// U+2015 水平线、U+2212 减号。
 			// Various dashes/hyphens → -
 			// U+2010 hyphen, U+2011 non-breaking hyphen, U+2012 figure dash,
 			// U+2013 en-dash, U+2014 em-dash, U+2015 horizontal bar, U+2212 minus
 			.replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, "-")
+			// 中文：特殊空格转换为普通空格：U+00A0 不换行空格、U+2002-U+200A 各种宽度空格、U+202F 窄不换行空格、U+205F 中等数学空格、U+3000 表
+			// 意文字空格。
 			// Special spaces → regular space
 			// U+00A0 NBSP, U+2002-U+200A various spaces, U+202F narrow NBSP,
 			// U+205F medium math space, U+3000 ideographic space
@@ -115,6 +125,9 @@ function applyReplacements(content: string, replacements: TextReplacement[], off
 	return result;
 }
 
+// 中文：将针对 `baseContent` 匹配出的替换应用到 `originalContent`，同时保留原文中未改动的行块。适用于 `baseContent` 是原文规
+// 范化视图的情形：每项替换扩展到实际涉及的行，这些行从规范化基准重写，其余行从 `originalContent` 原样复制。保留范围由实际替换区间决定，避免重复的规范化行
+// 被错误对齐到另一处。
 /**
  * Apply replacements matched against `baseContent` to `originalContent` while
  * preserving unchanged line blocks from the original.
@@ -169,14 +182,19 @@ export function applyReplacementsPreservingUnchangedLines(
 }
 
 export interface FuzzyMatchResult {
+	// 中文：是否找到匹配。
 	/** Whether a match was found */
 	found: boolean;
+	// 中文：匹配起始索引，位于应当用于替换的内容中。
 	/** The index where the match starts (in the content that should be used for replacement) */
 	index: number;
+	// 中文：匹配文本的长度。
 	/** Length of the matched text */
 	matchLength: number;
+	// 中文：是否使用了模糊匹配；false 表示精确匹配。
 	/** Whether fuzzy matching was used (false = exact match) */
 	usedFuzzyMatch: boolean;
+	// 中文：替换操作应使用的内容。精确匹配时为原始内容，模糊匹配时为规范化内容。
 	/**
 	 * The content to use for replacement operations.
 	 * When exact match: original content. When fuzzy match: normalized content.
@@ -194,6 +212,8 @@ export interface AppliedEditsResult {
 	newContent: string;
 }
 
+// 中文：在 content 中查找 oldText，先尝试精确匹配，再尝试模糊匹配。使用模糊匹配时，返回的 contentForReplacement 是模糊匹配规范化后的
+// 内容：去除行尾空白，并将 Unicode 引号和破折号转换为 ASCII。
 /**
  * Find oldText in content, trying exact match first, then fuzzy match.
  * When fuzzy matching is used, the returned contentForReplacement is the
@@ -201,6 +221,7 @@ export interface AppliedEditsResult {
  * Unicode quotes/dashes normalized to ASCII).
  */
 export function fuzzyFindText(content: string, oldText: string): FuzzyMatchResult {
+	// 中文：先尝试精确匹配。
 	// Try exact match first
 	const exactIndex = content.indexOf(oldText);
 	if (exactIndex !== -1) {
@@ -213,6 +234,7 @@ export function fuzzyFindText(content: string, oldText: string): FuzzyMatchResul
 		};
 	}
 
+	// 中文：尝试模糊匹配，全程在规范化后的文本中操作。
 	// Try fuzzy match - work entirely in normalized space
 	const fuzzyContent = normalizeForFuzzyMatch(content);
 	const fuzzyOldText = normalizeForFuzzyMatch(oldText);
@@ -228,6 +250,7 @@ export function fuzzyFindText(content: string, oldText: string): FuzzyMatchResul
 		};
 	}
 
+	// 中文：模糊匹配时，返回规范化文本中的偏移。调用方可用规范化内容计算替换，再决定将多少规范化后的输出写回。
 	// When fuzzy matching, return offsets in normalized space. Callers can use
 	// the normalized content to compute replacements, then decide how much of
 	// that normalized output should be written back.
@@ -240,6 +263,7 @@ export function fuzzyFindText(content: string, oldText: string): FuzzyMatchResul
 	};
 }
 
+// 中文：存在 UTF-8 BOM 时将其剥离，同时返回 BOM（若有）和不含 BOM 的文本。
 /** Strip UTF-8 BOM if present, return both the BOM (if any) and the text without it */
 export function stripBom(content: string): { bom: string; text: string } {
 	return content.startsWith("\uFEFF") ? { bom: "\uFEFF", text: content.slice(1) } : { bom: "", text: content };
@@ -289,6 +313,8 @@ function getNoChangeError(path: string, totalEdits: number): Error {
 	return new Error(`No changes made to ${path}. The replacements produced identical content.`);
 }
 
+// 中文：对已统一为 LF 换行的内容执行一项或多项精确文本替换。所有编辑针对同一原始内容匹配，随后逆序应用替换，以保持偏移稳定。若任一编辑需要模糊匹配，则在模糊规范化文本中
+// 执行，再将这些行级改动叠加到原文，使未改动行块保留原始字节。
 /**
  * Apply one or more exact-text replacements to LF-normalized content.
  *
@@ -362,6 +388,7 @@ export function applyEditsToNormalizedContent(
 	return { baseContent, newContent };
 }
 
+// 中文：生成标准 unified patch。
 /** Generate a standard unified patch. */
 export function generateUnifiedPatch(path: string, oldContent: string, newContent: string, contextLines = 4): string {
 	return Diff.createTwoFilesPatch(path, path, oldContent, newContent, undefined, undefined, {
@@ -370,6 +397,7 @@ export function generateUnifiedPatch(path: string, oldContent: string, newConten
 	});
 }
 
+// 中文：生成用于展示的差异字符串，包含行号和上下文。返回差异字符串及新文件中第一处改动的行号。
 /**
  * Generate a display-oriented diff string with line numbers and context.
  * Returns both the diff string and the first changed line number (in the new file).
@@ -400,11 +428,13 @@ export function generateDiffString(
 		}
 
 		if (part.added || part.removed) {
+			// 中文：记录新文件中第一处改动的行号。
 			// Capture the first changed line (in the new file)
 			if (firstChangedLine === undefined) {
 				firstChangedLine = newLineNum;
 			}
 
+			// 中文：显示改动。
 			// Show the change
 			for (const line of raw) {
 				if (part.added) {
@@ -412,6 +442,7 @@ export function generateDiffString(
 					output.push(`+${lineNum} ${line}`);
 					newLineNum++;
 				} else {
+					// 中文：已删除的内容。
 					// removed
 					const lineNum = String(oldLineNum).padStart(lineNumWidth, " ");
 					output.push(`-${lineNum} ${line}`);
@@ -420,6 +451,7 @@ export function generateDiffString(
 			}
 			lastWasChange = true;
 		} else {
+			// 中文：上下文行：只显示改动前后的少量行。
 			// Context lines - only show a few before/after changes
 			const nextPartIsChange = i < parts.length - 1 && (parts[i + 1].added || parts[i + 1].removed);
 			const hasLeadingChange = lastWasChange;
@@ -487,6 +519,7 @@ export function generateDiffString(
 					newLineNum++;
 				}
 			} else {
+				// 中文：完全跳过这些上下文行。
 				// Skip these context lines entirely
 				oldLineNum += raw.length;
 				newLineNum += raw.length;
