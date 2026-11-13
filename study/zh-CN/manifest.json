@@ -193,6 +193,30 @@
       "sourceSha256": "2dba08e6aaffc7e8317b1e1c8a35cf3f390cc1bdc7cb7634902c80f26ab72c36",
       "title": "WP05 后续路线审计",
       "translatedUnits": 27
+    },
+    {
+      "source": "packages/agent/docs/values.md",
+      "translation": "study/zh-CN/packages/agent/docs/values.md",
+      "sourceCommit": "7ca5b1bde4d3dafe3f7555407bd96043b5b660ee",
+      "sourceSha256": "ca2dfc2bd97d8e4f8eacddc9254b9077eb1403a20d5660ed844309b54c471c43",
+      "title": "类型化值与列表",
+      "translatedUnits": 29
+    },
+    {
+      "source": "packages/agent/docs/tool-durability.md",
+      "translation": "study/zh-CN/packages/agent/docs/tool-durability.md",
+      "sourceCommit": "7ca5b1bde4d3dafe3f7555407bd96043b5b660ee",
+      "sourceSha256": "e42fc1900b7a80a6a525e31b6bd4b551b937a5e8f5cadc5cae7a7fe12a74d874",
+      "title": "工具持久化",
+      "translatedUnits": 43
+    },
+    {
+      "source": "packages/session-backends/sqlite-node/README.md",
+      "translation": "study/zh-CN/packages/session-backends/sqlite-node/README.md",
+      "sourceCommit": "7ca5b1bde4d3dafe3f7555407bd96043b5b660ee",
+      "sourceSha256": "95b85510009cf78a821cc2a0a90e3ea9d2a81ecaa03381fa297e6e7ed2932b30",
+      "title": "Node SQLite 会话后端",
+      "translatedUnits": 1
     }
   ]
 }

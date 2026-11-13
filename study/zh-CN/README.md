@@ -10,6 +10,9 @@
 
 | 原始相对路径 | 中文阅读版 | 英文原文 |
 |---|---|---|
+| `packages/agent/docs/values.md` | [类型化值与列表](packages/agent/docs/values.md) | [原文](../../packages/agent/docs/values.md) |
+| `packages/agent/docs/tool-durability.md` | [工具持久化](packages/agent/docs/tool-durability.md) | [原文](../../packages/agent/docs/tool-durability.md) |
+| `packages/session-backends/sqlite-node/README.md` | [Node SQLite 会话后端](packages/session-backends/sqlite-node/README.md) | [原文](../../packages/session-backends/sqlite-node/README.md) |
 | `packages/agent/docs/assistant-durability.md` | [助手部分输出持久化](packages/agent/docs/assistant-durability.md) | [原文](../../packages/agent/docs/assistant-durability.md) |
 | `packages/agent/docs/runtime-simplification.md` | [AgentHarness 运行时简化](packages/agent/docs/runtime-simplification.md) | [原文](../../packages/agent/docs/runtime-simplification.md) |
 | `packages/agent/docs/post-wp05-roadmap.md` | [WP05 后续路线审计](packages/agent/docs/post-wp05-roadmap.md) | [原文](../../packages/agent/docs/post-wp05-roadmap.md) |
